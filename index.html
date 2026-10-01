@@ -7,9 +7,9 @@
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
     <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
@@ -54,6 +54,20 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* Human-designed dashboard refinements */
+        .app-page{display:none;animation:pageIn .18s ease-out}.app-page.active{display:block}                @keyframes pageIn{from{opacity:.3;transform:translateY(4px)}to{opacity:1;transform:none}}
+        .nav-link{cursor:pointer}
+        .nav-link.active{background:#2563eb!important;color:#fff!important}
+        .nav-link.active:hover{background:#1d4ed8!important}
+        .soft-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+        .page-heading{font-size:20px;font-weight:700;color:#0f172a}
+        .page-subheading{font-size:13px;color:#64748b;margin-top:3px}
+        .mini-stat{padding:16px;background:#fff;border:1px solid #e2e8f0;border-radius:12px}
+        .data-row:hover{background:#f8fafc}
+        .action-btn{cursor:pointer}
+        @media(max-width:900px){aside{width:220px!important}.hide-mobile{display:none!important}}
+
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
@@ -76,34 +90,34 @@
             <nav class="p-4 space-y-1">
                 <div class="px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Core Systems</div>
                 
-                <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition-all">
+                <a href="#" onclick="event.preventDefault(); switchTab('dashboard')" id="nav-dashboard" class="nav-link active flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white transition-all">
                     <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
                     <span>Executive Overview</span>
                 </a>
 
-                <a href="#" onclick="switchTab('telematics')" id="nav-telematics" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                <a href="#" onclick="event.preventDefault(); switchTab('telematics')" id="nav-telematics" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
                     <i data-lucide="activity" class="w-4 h-4"></i>
                     <span>Fleet Telematics</span>
                 </a>
 
-                <a href="#" onclick="switchTab('diagnostics')" id="nav-diagnostics" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                <a href="#" onclick="event.preventDefault(); switchTab('diagnostics')" id="nav-diagnostics" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
                     <i data-lucide="wrench" class="w-4 h-4"></i>
                     <span>OBD-II Diagnostics</span>
                 </a>
 
-                <a href="#" onclick="switchTab('inventory')" id="nav-inventory" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                <a href="#" onclick="event.preventDefault(); switchTab('inventory')" id="nav-inventory" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
                     <i data-lucide="boxes" class="w-4 h-4"></i>
                     <span>Parts & Spare Stock</span>
                 </a>
 
                 <div class="pt-4 px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Management</div>
 
-                <a href="#" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                <a href="#" onclick="event.preventDefault(); switchTab('gps')" id="nav-gps" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
                     <i data-lucide="navigation" class="w-4 h-4"></i>
                     <span>GPS & Geofence</span>
                 </a>
 
-                <a href="#" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                <a href="#" onclick="event.preventDefault(); switchTab('reports')" id="nav-reports" class="nav-link flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
                     <i data-lucide="file-bar-chart" class="w-4 h-4"></i>
                     <span>Fleet Reports</span>
                 </a>
@@ -167,6 +181,7 @@
 
         <!-- MAIN DASHBOARD CONTENT (SCROLLABLE) -->
         <main class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-6">
+            <section id="page-dashboard" class="app-page active">
 
             <!-- STATS / KPI METRICS GRID -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -315,6 +330,82 @@
                 </div>
             </div>
 
+            </section>
+
+            <!-- FLEET TELEMATICS PAGE -->
+            <section id="page-telematics" class="app-page">
+                <div class="flex items-start justify-between mb-6">
+                    <div><h2 class="page-heading">Fleet Telematics</h2><p class="page-subheading">ติดตามสถานะรถและข้อมูลการเชื่อมต่อแบบเรียลไทม์</p></div>
+                    <button onclick="openAddVehicleModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">+ เพิ่มรถ</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="mini-stat"><p class="text-xs text-slate-500">รถทั้งหมด</p><p id="tele-total" class="text-2xl font-bold mt-1">0</p></div>
+                    <div class="mini-stat"><p class="text-xs text-slate-500">กำลังวิ่ง</p><p id="tele-moving" class="text-2xl font-bold mt-1 text-blue-600">0</p></div>
+                    <div class="mini-stat"><p class="text-xs text-slate-500">ต้องตรวจสอบ</p><p id="tele-issues" class="text-2xl font-bold mt-1 text-amber-600">0</p></div>
+                </div>
+                <div class="soft-card overflow-hidden">
+                    <div class="p-4 border-b border-slate-200 flex flex-wrap gap-3 justify-between">
+                        <div><h3 class="font-bold text-sm">Vehicle Telemetry</h3><p class="text-xs text-slate-500 mt-1">ข้อมูลล่าสุดจาก Fleet Gateway</p></div>
+                        <input id="tele-search" oninput="renderTelematics()" placeholder="ค้นหา ID / รุ่นรถ..." class="px-3 py-2 border border-slate-200 rounded-lg text-sm w-64">
+                    </div>
+                    <div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-slate-50 text-xs text-slate-500"><tr>
+                        <th class="text-left px-4 py-3">Vehicle</th><th class="text-left px-4 py-3">Status</th><th class="text-left px-4 py-3">Fuel</th><th class="text-left px-4 py-3">Speed</th><th class="text-left px-4 py-3">Temperature</th><th class="text-right px-4 py-3">Action</th>
+                    </tr></thead><tbody id="telematics-body" class="divide-y divide-slate-100"></tbody></table></div>
+                </div>
+            </section>
+
+            <!-- DIAGNOSTICS PAGE -->
+            <section id="page-diagnostics" class="app-page">
+                <div class="mb-6"><h2 class="page-heading">OBD-II Diagnostics</h2><p class="page-subheading">ตรวจสอบรหัสผิดพลาดและสถานะเครื่องยนต์ของรถแต่ละคัน</p></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="mini-stat"><p class="text-xs text-slate-500">Operational</p><p id="diag-ok" class="text-2xl font-bold text-emerald-600 mt-1">0</p></div>
+                    <div class="mini-stat"><p class="text-xs text-slate-500">DTC Warning</p><p id="diag-warning" class="text-2xl font-bold text-amber-600 mt-1">0</p></div>
+                    <div class="mini-stat"><p class="text-xs text-slate-500">Maintenance</p><p id="diag-maint" class="text-2xl font-bold text-rose-600 mt-1">0</p></div>
+                </div>
+                <div class="soft-card">
+                    <div class="p-4 border-b border-slate-200"><h3 class="font-bold text-sm">Diagnostic Queue</h3></div>
+                    <div id="diagnostic-list" class="divide-y divide-slate-100"></div>
+                </div>
+            </section>
+
+            <!-- INVENTORY PAGE -->
+            <section id="page-inventory" class="app-page">
+                <div class="mb-6"><h2 class="page-heading">Parts & Spare Stock</h2><p class="page-subheading">จัดการอะไหล่ที่เกี่ยวข้องกับการซ่อมบำรุง Fleet</p></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="mini-stat"><p class="text-xs text-slate-500">รายการอะไหล่</p><p class="text-2xl font-bold mt-1">24</p></div>
+                    <div class="mini-stat"><p class="text-xs text-slate-500">พร้อมใช้งาน</p><p class="text-2xl font-bold text-emerald-600 mt-1">18</p></div>
+                    <div class="mini-stat"><p class="text-xs text-slate-500">ต้องสั่งเพิ่ม</p><p class="text-2xl font-bold text-amber-600 mt-1">6</p></div>
+                </div>
+                <div class="soft-card overflow-hidden"><div class="p-4 border-b border-slate-200"><h3 class="font-bold text-sm">Stock Overview</h3></div>
+                    <table class="w-full text-sm"><thead class="bg-slate-50 text-xs text-slate-500"><tr><th class="text-left px-4 py-3">Part</th><th class="text-left px-4 py-3">Category</th><th class="text-left px-4 py-3">Stock</th><th class="text-left px-4 py-3">Level</th></tr></thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr><td class="px-4 py-3 font-medium">OBD Sensor</td><td class="px-4 py-3 text-slate-500">Sensor</td><td class="px-4 py-3">18</td><td class="px-4 py-3 text-emerald-600">Normal</td></tr>
+                        <tr><td class="px-4 py-3 font-medium">Air Filter</td><td class="px-4 py-3 text-slate-500">Engine</td><td class="px-4 py-3">31</td><td class="px-4 py-3 text-emerald-600">Normal</td></tr>
+                        <tr><td class="px-4 py-3 font-medium">Coolant Valve</td><td class="px-4 py-3 text-slate-500">Cooling</td><td class="px-4 py-3">4</td><td class="px-4 py-3 text-amber-600">Low stock</td></tr>
+                        <tr><td class="px-4 py-3 font-medium">Brake Pads</td><td class="px-4 py-3 text-slate-500">Brake</td><td class="px-4 py-3">12</td><td class="px-4 py-3 text-emerald-600">Normal</td></tr>
+                    </tbody></table>
+                </div>
+            </section>
+
+            <!-- GPS PAGE -->
+            <section id="page-gps" class="app-page">
+                <div class="mb-6"><h2 class="page-heading">GPS & Geofence</h2><p class="page-subheading">ติดตามพื้นที่และสถานะตำแหน่งของรถใน Fleet</p></div>
+                <div class="soft-card p-6 mb-6"><div class="h-72 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center">
+                    <div class="text-center"><i data-lucide="map" class="w-10 h-10 text-slate-400 mx-auto mb-3"></i><p class="font-semibold text-slate-700">Fleet Map</p><p class="text-xs text-slate-500 mt-1">เชื่อมต่อ GPS Gateway เพื่อแสดงตำแหน่งรถแบบเรียลไทม์</p></div>
+                </div></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div class="mini-stat"><p class="text-xs text-slate-500">Geofence Areas</p><p class="text-2xl font-bold mt-1">8</p></div><div class="mini-stat"><p class="text-xs text-slate-500">Vehicles Inside</p><p class="text-2xl font-bold mt-1">136</p></div><div class="mini-stat"><p class="text-xs text-slate-500">Alerts Today</p><p class="text-2xl font-bold text-amber-600 mt-1">2</p></div></div>
+            </section>
+
+            <!-- REPORTS PAGE -->
+            <section id="page-reports" class="app-page">
+                <div class="flex items-start justify-between mb-6"><div><h2 class="page-heading">Fleet Reports</h2><p class="page-subheading">สรุปข้อมูลสำหรับการตรวจสอบและตัดสินใจ</p></div><button onclick="alert('สร้างรายงานเรียบร้อยแล้ว')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Generate Report</button></div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="soft-card p-5"><h3 class="font-bold text-sm">Fleet Utilization</h3><p class="text-3xl font-bold mt-3">86%</p><p class="text-xs text-emerald-600 mt-1">ข้อมูลจากรอบล่าสุด</p></div>
+                    <div class="soft-card p-5"><h3 class="font-bold text-sm">Maintenance Cases</h3><p class="text-3xl font-bold mt-3">3</p><p class="text-xs text-slate-500 mt-1">รายการที่อยู่ระหว่างดำเนินการ</p></div>
+                    <div class="soft-card p-5"><h3 class="font-bold text-sm">Average Fuel Economy</h3><p class="text-3xl font-bold mt-3">11.4 <span class="text-sm font-normal">km/L</span></p></div>
+                    <div class="soft-card p-5"><h3 class="font-bold text-sm">Telemetry Availability</h3><p class="text-3xl font-bold mt-3">96.8%</p></div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -396,8 +487,13 @@
     </div>
 
     <script>
-        // Initialize Lucide Icons
-        lucide.createIcons();
+        // Initialize Lucide Icons safely
+        function refreshIcons() {
+            if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+            }
+        }
+        refreshIcons();
 
         // Sample Enterprise Fleet Data
         let fleetData = [
@@ -543,6 +639,8 @@
             });
 
             renderTable(fleetData);
+            renderTelematics();
+            renderDiagnostics();
             closeAddVehicleModal();
             document.getElementById('add-vehicle-form').reset();
         }
@@ -552,22 +650,80 @@
             closeModal();
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('nav a').forEach(el => {
-                el.classList.remove('bg-blue-600', 'text-white');
-                el.classList.add('text-slate-400');
-            });
+        const pageTitles = {
+            dashboard: 'Executive Telematics Dashboard',
+            telematics: 'Fleet Telematics',
+            diagnostics: 'OBD-II Diagnostics',
+            inventory: 'Parts & Spare Stock',
+            gps: 'GPS & Geofence',
+            reports: 'Fleet Reports'
+        };
+
+        function switchTab(tab, updateHash = true) {
+            const target = document.getElementById(`page-${tab}`);
+            if (!target) return;
+
+            document.querySelectorAll('.app-page').forEach(page => page.classList.remove('active'));
+            target.classList.add('active');
+
+            document.querySelectorAll('nav a.nav-link').forEach(el => el.classList.remove('active'));
             const activeNav = document.getElementById(`nav-${tab}`);
-            if(activeNav) {
-                activeNav.classList.add('bg-blue-600', 'text-white');
-                activeNav.classList.remove('text-slate-400');
+            if (activeNav) activeNav.classList.add('active');
+
+            const title = document.getElementById('page-title');
+            if (title) title.textContent = pageTitles[tab] || 'Fleet Management';
+
+            if (updateHash && window.location.hash !== `#${tab}`) {
+                history.replaceState(null, '', `#${tab}`);
             }
+
+            if (tab === 'telematics') renderTelematics();
+            if (tab === 'diagnostics') renderDiagnostics();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
         }
 
-        window.onload = function() {
+        function renderTelematics() {
+            const q = (document.getElementById('tele-search')?.value || '').toLowerCase();
+            const rows = fleetData.filter(v => `${v.id} ${v.model}`.toLowerCase().includes(q));
+            const body = document.getElementById('telematics-body');
+            if (!body) return;
+            body.innerHTML = rows.map(v => {
+                const statusClass = v.status === 'Operational' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : v.status === 'Warning' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-rose-700 bg-rose-50 border-rose-200';
+                return `<tr class="data-row">
+                    <td class="px-4 py-3"><div class="font-semibold">${v.model}</div><div class="text-xs font-mono text-slate-400">${v.id}</div></td>
+                    <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs border ${statusClass}">${v.status}</span></td>
+                    <td class="px-4 py-3">${v.fuel}%</td><td class="px-4 py-3 font-mono">${v.speed} km/h</td><td class="px-4 py-3">${v.temp}</td>
+                    <td class="px-4 py-3 text-right"><button class="action-btn px-3 py-1.5 border border-slate-200 rounded-lg text-xs hover:bg-blue-50 hover:text-blue-600" onclick="inspectVehicle('${v.id}')">Inspect</button></td>
+                </tr>`;
+            }).join('');
+            document.getElementById('tele-total').textContent = fleetData.length;
+            document.getElementById('tele-moving').textContent = fleetData.filter(v => v.speed > 0).length;
+            document.getElementById('tele-issues').textContent = fleetData.filter(v => v.status !== 'Operational').length;
+        }
+
+        function renderDiagnostics() {
+            const counts = {Operational:0, Warning:0, Maintenance:0};
+            fleetData.forEach(v => counts[v.status]++);
+            document.getElementById('diag-ok').textContent = counts.Operational;
+            document.getElementById('diag-warning').textContent = counts.Warning;
+            document.getElementById('diag-maint').textContent = counts.Maintenance;
+            document.getElementById('diagnostic-list').innerHTML = fleetData.filter(v => v.status !== 'Operational').map(v => `
+                <div class="p-4 flex items-center justify-between">
+                    <div><p class="font-semibold text-sm">${v.model}</p><p class="text-xs text-slate-500 font-mono">${v.id} · ${v.dtc}</p></div>
+                    <button onclick="inspectVehicle('${v.id}')" class="px-3 py-1.5 text-xs border border-slate-200 rounded-lg hover:bg-slate-50">View details</button>
+                </div>`).join('') || '<div class="p-6 text-sm text-slate-500">ไม่พบรายการที่ต้องตรวจสอบ</div>';
+        }
+
+        function initializeDashboard() {
             renderTable(fleetData);
+            renderTelematics();
+            renderDiagnostics();
 
             // Chart 1: Real-time Line Chart
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js failed to load. Check the network/CDN connection.');
+                return;
+            }
             const ctx1 = document.getElementById('telemetryChart').getContext('2d');
             telemetryChart = new Chart(ctx1, {
                 type: 'line',
@@ -638,7 +794,21 @@
                     telemetryChart.update('none');
                 }
             }, 3000);
-        };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const requestedTab = window.location.hash.replace('#', '').toLowerCase();
+            const validTabs = ['dashboard', 'telematics', 'diagnostics', 'inventory', 'gps', 'reports'];
+            switchTab(validTabs.includes(requestedTab) ? requestedTab : 'dashboard', false);
+            initializeDashboard();
+            refreshIcons();
+        });
+
+        window.addEventListener('hashchange', () => {
+            const requestedTab = window.location.hash.replace('#', '').toLowerCase();
+            const validTabs = ['dashboard', 'telematics', 'diagnostics', 'inventory', 'gps', 'reports'];
+            if (validTabs.includes(requestedTab)) switchTab(requestedTab, false);
+        });
     </script>
 </body>
 </html>
