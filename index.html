@@ -1,796 +1,644 @@
 <!DOCTYPE html>
-<html lang="th" class="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enterprise Analytics & Inventory Dashboard</title>
-
+    <title>Enterprise Automotive Telematics & Fleet Intelligence</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
+                        navy: {
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617'
+                        },
                         brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#0284c7',
-                            600: '#0369a1',
-                            700: '#075985',
+                            50: '#eff6ff',
+                            500: '#2563eb',
+                            600: '#1d4ed8',
+                            700: '#1e40af'
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'Kanit', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
                     }
                 }
             }
         }
     </script>
-
-    <!-- Google Fonts (Inter & Kanit) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
-
-    <!-- FontAwesome Icons CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <style>
-        body { font-family: 'Inter', 'Kanit', sans-serif; }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+        /* Custom scrollbar for clean enterprise UI */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
+<body class="bg-slate-50 font-sans text-slate-800 antialiased flex h-screen overflow-hidden">
 
-    <div class="flex h-screen overflow-hidden">
-
-        <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-transform duration-300 transform -translate-x-full md:translate-x-0 flex flex-col justify-between">
-            <div>
-                <!-- Brand Header -->
-                <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-                            <i class="fa-solid fa-chart-line text-lg"></i>
-                        </div>
-                        <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">ApexDash</span>
-                    </div>
-                    <button id="closeSidebarBtn" class="md:hidden text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
-                        <i class="fa-solid fa-xmark text-xl"></i>
-                    </button>
+    <!-- LEFT NAVIGATION SIDEBAR (Navy Dark) -->
+    <aside class="w-64 bg-navy-900 text-slate-300 flex flex-col justify-between flex-shrink-0 z-20 border-r border-slate-800">
+        <div>
+            <!-- Brand Logo -->
+            <div class="h-16 flex items-center px-6 bg-navy-950 border-b border-slate-800 space-x-3">
+                <div class="p-2 bg-blue-600 rounded-lg text-white">
+                    <i data-lucide="cpu" class="w-5 h-5"></i>
                 </div>
-
-                <!-- Nav Links -->
-                <nav class="p-4 space-y-1.5">
-                    <a href="#overview" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium transition-all">
-                        <i class="fa-solid fa-house w-5 text-center"></i>
-                        <span>ภาพรวม (Overview)</span>
-                    </a>
-                    <a href="#analytics" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
-                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                        <span>วิเคราะห์ข้อมูล (Analytics)</span>
-                    </a>
-                    <a href="#inventory" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
-                        <i class="fa-solid fa-boxes-stacked w-5 text-center"></i>
-                        <span>คลังสินค้า (Inventory)</span>
-                    </a>
-                    <a href="#transactions" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
-                        <i class="fa-solid fa-receipt w-5 text-center"></i>
-                        <span>รายการสั่งซื้อ (Orders)</span>
-                    </a>
-                    <a href="#tasks" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
-                        <i class="fa-solid fa-check-double w-5 text-center"></i>
-                        <span>งานที่ต้องทำ (Tasks)</span>
-                    </a>
-                </nav>
-            </div>
-
-            <!-- User Profile Section -->
-            <div class="p-4 border-t border-slate-200 dark:border-slate-700">
-                <div class="flex items-center space-x-3 p-2 rounded-xl bg-slate-100 dark:bg-slate-700/50">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold truncate">นันท์นภัส สุขเสริฐ</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">Administrator</p>
-                    </div>
+                <div>
+                    <h1 class="text-sm font-bold text-white tracking-wide uppercase">TELEMATIX<span class="text-blue-500">.PRO</span></h1>
+                    <p class="text-[10px] text-slate-400 font-mono">OBD-II / FLEET OS v4.2</p>
                 </div>
             </div>
-        </aside>
 
-        <!-- Sidebar Mobile Overlay -->
-        <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-20 hidden md:hidden"></div>
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1">
+                <div class="px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Core Systems</div>
+                
+                <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-600 text-white transition-all">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>Executive Overview</span>
+                </a>
 
-        <div class="flex-1 flex flex-col min-w-0 overflow-hidden md:ml-64">
-            <!-- Top Navbar -->
-            <header class="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 md:px-8 z-10">
-                <div class="flex items-center space-x-4">
-                    <button id="openSidebarBtn" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
-                        <i class="fa-solid fa-bars text-xl"></i>
+                <a href="#" onclick="switchTab('telematics')" id="nav-telematics" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                    <span>Fleet Telematics</span>
+                </a>
+
+                <a href="#" onclick="switchTab('diagnostics')" id="nav-diagnostics" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                    <i data-lucide="wrench" class="w-4 h-4"></i>
+                    <span>OBD-II Diagnostics</span>
+                </a>
+
+                <a href="#" onclick="switchTab('inventory')" id="nav-inventory" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                    <i data-lucide="boxes" class="w-4 h-4"></i>
+                    <span>Parts & Spare Stock</span>
+                </a>
+
+                <div class="pt-4 px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Management</div>
+
+                <a href="#" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                    <i data-lucide="navigation" class="w-4 h-4"></i>
+                    <span>GPS & Geofence</span>
+                </a>
+
+                <a href="#" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-800 hover:text-white transition-all text-slate-400">
+                    <i data-lucide="file-bar-chart" class="w-4 h-4"></i>
+                    <span>Fleet Reports</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Node Status / System Info -->
+        <div class="p-4 border-t border-slate-800 bg-navy-950/50">
+            <div class="flex items-center justify-between text-xs mb-2">
+                <span class="text-slate-400">Gateway Nodes:</span>
+                <span class="text-emerald-400 font-mono font-semibold">124 ONLINE</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-emerald-500 h-1.5 rounded-full w-11/12"></div>
+            </div>
+            <div class="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+                <span>Telemetry Latency</span>
+                <span class="font-mono text-slate-300">14ms</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+        <!-- TOP NAVIGATION BAR -->
+        <header class="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center space-x-4">
+                <h2 id="page-title" class="text-lg font-bold text-slate-800">Executive Telematics Dashboard</h2>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5 animate-pulse"></span>
+                    Live Data Streaming
+                </span>
+            </div>
+
+            <!-- Header Actions -->
+            <div class="flex items-center space-x-4">
+                <button onclick="openAddVehicleModal()" class="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Register Vehicle</span>
+                </button>
+
+                <div class="h-6 w-px bg-slate-200"></div>
+
+                <div class="relative">
+                    <button class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg relative">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-amber-500 rounded-full"></span>
                     </button>
-                    <!-- Global Search -->
-                    <div class="relative hidden sm:block w-64 md:w-80">
-                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                        <input type="text" placeholder="ค้นหาข้อมูล, คำสั่งซื้อ, หรือรายการ..." class="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-700/50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 dark:text-slate-100 outline-none transition-all">
+                </div>
+
+                <div class="flex items-center space-x-3 pl-2">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-8 h-8 rounded-full border border-slate-200 object-cover" alt="User Avatar">
+                    <div class="text-left hidden md:block">
+                        <p class="text-xs font-semibold text-slate-700">Fleet Director</p>
+                        <p class="text-[10px] text-slate-500">Nissan Motor Asia</p>
                     </div>
                 </div>
+            </div>
+        </header>
 
-                <!-- Actions Right -->
-                <div class="flex items-center space-x-3">
-                    <!-- Quick Add Button -->
-                    <button id="quickAddBtn" class="hidden sm:flex items-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-sm">
-                        <i class="fa-solid fa-plus text-xs"></i>
-                        <span>เพิ่มสินค้าใหม่</span>
-                    </button>
+        <!-- MAIN DASHBOARD CONTENT (SCROLLABLE) -->
+        <main class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-6">
 
-                    <!-- Notifications Toggle Button -->
-                    <button id="notifBtn" class="relative p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all">
-                        <i class="fa-regular fa-bell text-lg"></i>
-                        <span id="notifDot" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-800"></span>
-                    </button>
-
-                    <!-- Dark Mode Toggle Button -->
-                    <button id="themeToggleBtn" class="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all">
-                        <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
-                    </button>
-                </div>
-            </header>
-
-            <main class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8">
-
-                <!-- Page Header Title -->
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <!-- STATS / KPI METRICS GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                
+                <!-- Active Fleet -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight">ภาพรวมระบบแดชบอร์ด</h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">ยินดีต้อนรับกลับมา! นี่คือสรุปผลการดำเนินงานล่าสุดของคุณประจำวันนี้</p>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Active Vehicles</p>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-1" id="kpi-active-count">142</h3>
+                        <p class="text-[11px] text-emerald-600 font-medium mt-1">96.8% Fleet Online</p>
                     </div>
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                        <i data-lucide="car" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Fuel Efficiency -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Avg Fuel Economy</p>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-1">11.4 <span class="text-xs font-normal text-slate-500">km/L</span></h3>
+                        <p class="text-[11px] text-emerald-600 font-medium mt-1">+0.8 km/L vs Target</p>
+                    </div>
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                        <i data-lucide="fuel" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Diagnostic Alerts -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">DTC Alerts</p>
+                        <h3 class="text-2xl font-bold text-amber-600 mt-1" id="kpi-alerts-count">3</h3>
+                        <p class="text-[11px] text-amber-600 font-medium mt-1">Requires Attention</p>
+                    </div>
+                    <div class="p-3 bg-amber-50 text-amber-600 rounded-lg">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- Spare Parts Stock -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Critical Spare Stock</p>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-1">88%</h3>
+                        <p class="text-[11px] text-slate-500 font-medium mt-1">OBD-II Sensor Replacements</p>
+                    </div>
+                    <div class="p-3 bg-slate-100 text-slate-600 rounded-lg">
+                        <i data-lucide="package-check" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+                <!-- OBD-II Stream Rate -->
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">CAN-Bus Throughput</p>
+                        <h3 class="text-2xl font-bold text-slate-900 mt-1">1.8 <span class="text-xs font-normal text-slate-500">GB/hr</span></h3>
+                        <p class="text-[11px] text-blue-600 font-medium mt-1">Realtime Streaming</p>
+                    </div>
+                    <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
+                        <i data-lucide="database" class="w-6 h-6"></i>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- CHARTS SECTION -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- Line Chart: Real-time Telemetry (Speed vs Engine RPM) -->
+                <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm">Real-time Telemetry Analytics (GT-R Fleet #3501)</h3>
+                            <p class="text-xs text-slate-500">Engine Speed (RPM) & Vehicle Velocity (km/h)</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-mono bg-slate-100 px-2 py-1 rounded text-slate-600">Sample Rate: 50ms</span>
+                        </div>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="telemetryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Donut Chart: Diagnostics & Fleet Health Breakdown -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm">Fleet Diagnostic Health</h3>
+                            <p class="text-xs text-slate-500">OBD-II DTC Status Breakdown</p>
+                        </div>
+                    </div>
+                    <div class="h-64 flex items-center justify-center">
+                        <canvas id="healthChart"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TELEMATICS VEHICLE DATA TABLE -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <!-- Table Header & Controls -->
+                <div class="p-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div class="flex items-center space-x-3">
-                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center space-x-2 shadow-sm">
-                            <i class="fa-regular fa-calendar text-blue-500"></i>
-                            <span id="currentDateDisplay">01 ต.ค. 2026</span>
+                        <h3 class="font-bold text-slate-800 text-sm">Live Fleet Telematics & Inventory Status</h3>
+                        <span class="text-xs font-mono text-slate-400" id="record-count">6 Units Loaded</span>
+                    </div>
+
+                    <!-- Search & Filters -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <!-- Search Bar -->
+                        <div class="relative">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                            <input type="text" id="table-search" placeholder="Search Vehicle ID or Model..." onkeyup="filterTable()" class="pl-9 pr-3 py-1.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64">
                         </div>
+
+                        <!-- Status Filter Dropdown -->
+                        <select id="status-filter" onchange="filterTable()" class="py-1.5 px-3 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="ALL">All Statuses</option>
+                            <option value="Operational">Operational</option>
+                            <option value="Warning">Warning / DTC</option>
+                            <option value="Maintenance">Maintenance Required</option>
+                        </select>
                     </div>
                 </div>
 
-                <!-- Key Metrics Grid -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                    <!-- Metric 1: Total Revenue -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">รายได้รวมทั้งหมด</span>
-                            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                                <i class="fa-solid fa-baht-sign text-lg"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <h3 class="text-2xl font-bold">฿1,284,500</h3>
-                            <div class="mt-2 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 space-x-1">
-                                <i class="fa-solid fa-arrow-trend-up"></i>
-                                <span>+12.5%</span>
-                                <span class="text-slate-400 font-normal">เทียบกับเดือนที่แล้ว</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Metric 2: Active Orders -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">คำสั่งซื้อที่ดำเนินการ</span>
-                            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                                <i class="fa-solid fa-cart-shopping text-lg"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <h3 class="text-2xl font-bold">1,420 รายการ</h3>
-                            <div class="mt-2 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 space-x-1">
-                                <i class="fa-solid fa-arrow-trend-up"></i>
-                                <span>+8.2%</span>
-                                <span class="text-slate-400 font-normal">เทียบกับสัปดาห์ที่แล้ว</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Metric 3: Inventory Alerts -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">เตือนสต็อกใกล้หมด</span>
-                            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <h3 class="text-2xl font-bold">14 รายการ</h3>
-                            <div class="mt-2 flex items-center text-xs font-semibold text-rose-500 space-x-1">
-                                <i class="fa-solid fa-arrow-trend-up"></i>
-                                <span>+3 รายการ</span>
-                                <span class="text-slate-400 font-normal">ต้องสั่งซื้อเพิ่มด่วน</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Metric 4: Active Users -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">ผู้ใช้งานแอกทีฟ</span>
-                            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                                <i class="fa-solid fa-users text-lg"></i>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <h3 class="text-2xl font-bold">8,930 คน</h3>
-                            <div class="mt-2 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 space-x-1">
-                                <i class="fa-solid fa-arrow-trend-up"></i>
-                                <span>+15.3%</span>
-                                <span class="text-slate-400 font-normal">ยอดผู้ใช้เพิ่มขึ้น</span>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Table Content -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 font-semibold text-xs border-b border-slate-200 uppercase tracking-wider">
+                                <th class="py-3.5 px-4">Vehicle ID & Model</th>
+                                <th class="py-3.5 px-4">Telematics Status</th>
+                                <th class="py-3.5 px-4">Fuel / Battery</th>
+                                <th class="py-3.5 px-4">Current Speed</th>
+                                <th class="py-3.5 px-4">OBD-II Code (DTC)</th>
+                                <th class="py-3.5 px-4">Spare Part Required</th>
+                                <th class="py-3.5 px-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fleet-table-body" class="divide-y divide-slate-200 text-slate-700">
+                            <!-- JS Dynamically populates rows -->
+                        </tbody>
+                    </table>
                 </div>
+            </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Revenue Trend Chart (2 Columns Wide) -->
-                    <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <div>
-                                <h2 class="text-lg font-bold">สถิติและแนวโน้มยอดขาย</h2>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">เปรียบเทียบยอดขายรวมกับเป้าหมายรายสัปดาห์ / เดือน</p>
-                            </div>
-                            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-700/60 p-1 rounded-xl self-start sm:self-auto">
-                                <button id="chartWeeklyBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm transition-all">รายสัปดาห์</button>
-                                <button id="chartMonthlyBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all">รายเดือน</button>
-                            </div>
-                        </div>
-                        <div class="h-72">
-                            <canvas id="revenueChart"></canvas>
-                        </div>
-                    </div>
+        </main>
+    </div>
 
-                    <!-- Category Breakdown Doughnut Chart -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <h2 class="text-lg font-bold">สัดส่วนหมวดหมู่สินค้า</h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">จำแนกตามยอดขายรายหมวดหมู่</p>
-                            <div class="h-60 relative flex items-center justify-center">
-                                <canvas id="categoryChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex justify-around text-center text-xs text-slate-500">
-                            <div>
-                                <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 mr-1"></span>ไอที & อิเล็กทรอนิกส์
-                            </div>
-                            <div>
-                                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1"></span>เครื่องใช้ไฟฟ้า
-                            </div>
-                        </div>
-                    </div>
+    <!-- DIAGNOSTIC INSPECTION MODAL -->
+    <div id="diagnostic-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-2xl overflow-hidden">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i data-lucide="cpu" class="w-5 h-5 text-blue-400"></i>
+                    <h3 class="font-bold text-sm">OBD-II Diagnostic Inspection Panel</h3>
                 </div>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <!-- Recent Transactions Table (2 Columns) -->
-                    <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div>
-                                <h2 class="text-lg font-bold">รายการสั่งซื้อล่าสุด</h2>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">การทำรายการที่เกิดขึ้นในระบบล่าสุด</p>
-                            </div>
-                            <!-- Table Filter Controls -->
-                            <div class="flex items-center space-x-2">
-                                <input type="text" id="tableSearchInput" placeholder="ค้นหาชื่อ หรือ ID..." class="px-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-700/50 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <select id="tableStatusFilter" class="px-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-700/50 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="ALL">สถานะทั้งหมด</option>
-                                    <option value="Completed">สำเสร็จ</option>
-                                    <option value="Pending">รอดำเนินการ</option>
-                                    <option value="Cancelled">ยกเลิก</option>
-                                </select>
-                            </div>
-                        </div>
+            <div class="p-6 space-y-4" id="modal-content">
+                <!-- Modal dynamic contents loaded by JS -->
+            </div>
 
-                        <!-- Table Area -->
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                        <th class="py-3 px-2">Order ID</th>
-                                        <th class="py-3 px-2">ชื่อลูกค้า</th>
-                                        <th class="py-3 px-2">สินค้า</th>
-                                        <th class="py-3 px-2">ยอดเงิน</th>
-                                        <th class="py-3 px-2">สถานะ</th>
-                                        <th class="py-3 px-2 text-right">จัดการ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="transactionsTbody" class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm">
-                                    <!-- Dynamic rows inserted via JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Dynamic Inventory Add Item Widget -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center space-x-2 mb-4">
-                                <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                                    <i class="fa-solid fa-box-archive text-sm"></i>
-                                </div>
-                                <h2 class="text-lg font-bold">เพิ่มรายการสินค้าด่วน</h2>
-                            </div>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">บันทึกข้อมูลสินค้าใหม่เข้าคลังสินค้าทันที</p>
-
-                            <form id="addItemForm" class="space-y-3">
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">ชื่อสินค้า</label>
-                                    <input type="text" id="itemNameInput" required placeholder="เช่น Wireless Keyboard" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">หมวดหมู่</label>
-                                    <select id="itemCategoryInput" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                                        <option value="Electronics">Electronics & IT</option>
-                                        <option value="Appliances">Home Appliances</option>
-                                        <option value="Gadgets">Gadgets & Accessories</option>
-                                    </select>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">ราคา (บาท)</label>
-                                        <input type="number" id="itemPriceInput" required placeholder="1290" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">จำนวนคงเหลือ</label>
-                                        <input type="number" id="itemStockInput" required placeholder="50" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                                    </div>
-                                </div>
-                                <button type="submit" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl text-sm transition-all shadow-md shadow-blue-500/20">
-                                    <i class="fa-solid fa-plus text-xs mr-1"></i> บันทึกข้อมูลสินค้า
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <!-- Quick To-Do Widget -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
-                        <div class="flex items-center justify-between mb-4">
-                            <h2 class="text-lg font-bold flex items-center space-x-2">
-                                <i class="fa-solid fa-list-check text-blue-500"></i>
-                                <span>รายการงานด่วนที่ต้องทำ (To-Do List)</span>
-                            </h2>
-                            <span id="taskCountBadge" class="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-semibold px-2.5 py-1 rounded-full">0 งาน</span>
-                        </div>
-
-                        <!-- Add Task Form -->
-                        <div class="flex space-x-2 mb-4">
-                            <input type="text" id="newTaskInput" placeholder="เพิ่มงานใหม่ที่ต้องทำ..." class="flex-1 px-3 py-2 text-sm bg-slate-100 dark:bg-slate-700/50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
-                            <button id="addTaskBtn" class="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl text-sm font-medium hover:bg-slate-900 transition-all">เพิ่ม</button>
-                        </div>
-
-                        <!-- Task List -->
-                        <ul id="taskList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                            <!-- Tasks populated dynamically -->
-                        </ul>
-                    </div>
-
-                    <!-- Quick Notes Widget -->
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
-                        <div>
-                            <h2 class="text-lg font-bold flex items-center space-x-2 mb-2">
-                                <i class="fa-regular fa-note-sticky text-amber-500"></i>
-                                <span>บันทึกความจำด่วน (Quick Note)</span>
-                            </h2>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">บันทึกช่วยจำสำหรับทีมงาน ข้อมูลจะถูกจัดเก็บโดยอัตโนมัติ</p>
-                            <textarea id="quickNoteTextarea" rows="4" class="w-full p-3 text-sm bg-amber-50/50 dark:bg-slate-700/30 border border-amber-200/60 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none resize-none" placeholder="พิมพ์ข้อความบันทึกที่นี่..."></textarea>
-                        </div>
-                        <div class="flex justify-between items-center mt-3 text-xs text-slate-400">
-                            <span id="noteSaveStatus">บันทึกเรียบร้อยแล้ว</span>
-                            <button id="clearNoteBtn" class="text-rose-500 hover:underline">ล้างข้อความ</button>
-                        </div>
-                    </div>
-                </div>
-
-            </main>
+            <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end space-x-3">
+                <button onclick="closeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 font-medium hover:bg-slate-100">Close</button>
+                <button onclick="triggerPartOrder()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center space-x-2">
+                    <i data-lucide="shopping-cart" class="w-4 h-4"></i>
+                    <span>Dispatch Spare Part Order</span>
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- Notifications Drawer -->
-    <div id="notifDrawer" class="fixed inset-y-0 right-0 w-80 sm:w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 z-50 transform translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
-        <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-            <h3 class="font-bold flex items-center space-x-2">
-                <i class="fa-regular fa-bell text-blue-500"></i>
-                <span>ศูนย์การแจ้งเตือน</span>
-            </h3>
-            <button id="closeNotifDrawerBtn" class="p-1 text-slate-400 hover:text-slate-600">
-                <i class="fa-solid fa-xmark text-lg"></i>
-            </button>
-        </div>
-        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="notifList">
-            <!-- Dynamic Notifications -->
-            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
-                <p class="text-xs font-semibold text-blue-600 dark:text-blue-400">คำสั่งซื้อใหม่ #ORD-9021</p>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">คุณสมชาย ชำระเงินจำนวน ฿4,500 สำเร็จแล้ว</p>
-                <span class="text-[10px] text-slate-400 mt-2 block">2 นาทีที่แล้ว</span>
+    <!-- REGISTER NEW VEHICLE MODAL -->
+    <div id="add-vehicle-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 w-full max-w-lg overflow-hidden">
+            <div class="px-6 py-4 bg-navy-900 text-white flex items-center justify-between">
+                <h3 class="font-bold text-sm">Register Fleet Node / Vehicle</h3>
+                <button onclick="closeAddVehicleModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
             </div>
-            <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl">
-                <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">เตือนสต็อกสินค้าต่ำ</p>
-                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">สินค้า "Mechanical Keyboard" เหลือเพียง 2 ชิ้น</p>
-                <span class="text-[10px] text-slate-400 mt-2 block">1 ชั่วโมงที่แล้ว</span>
-            </div>
-        </div>
-        <div class="p-3 border-t border-slate-200 dark:border-slate-700 text-center">
-            <button id="clearAllNotifsBtn" class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">ล้างการแจ้งเตือนทั้งหมด</button>
+
+            <form id="add-vehicle-form" onsubmit="handleAddVehicle(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Vehicle Model & Spec</label>
+                    <input type="text" id="new-model" required placeholder="e.g. Nissan GT-R Nismo / Navara Pro-4X" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">VIN / Fleet ID</label>
+                        <input type="text" id="new-vin" required placeholder="VIN-GT3509" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+                        <select id="new-status" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="Operational">Operational</option>
+                            <option value="Warning">Warning / DTC</option>
+                            <option value="Maintenance">Maintenance Required</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Fuel/Battery Level (%)</label>
+                        <input type="number" id="new-fuel" min="0" max="100" value="85" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Current Speed (km/h)</label>
+                        <input type="number" id="new-speed" min="0" max="320" value="95" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-3">
+                    <button type="button" onclick="closeAddVehicleModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">Register Vehicle</button>
+                </div>
+            </form>
         </div>
     </div>
-
-    <!-- Notifications Overlay Backdrop -->
-    <div id="notifOverlay" class="fixed inset-0 bg-slate-900/40 z-40 hidden"></div>
 
     <script>
-        // Data Mockups State
-        let mockTransactions = [
-            { id: 'ORD-9021', name: 'คุณสมชาย สายชล', item: 'Gaming Monitor 27"', amount: 8900, status: 'Completed' },
-            { id: 'ORD-9020', name: 'คุณวิภาดา มั่นคง', item: 'Ergonomic Chair', amount: 4500, status: 'Pending' },
-            { id: 'ORD-9019', name: 'คุณณัฐพล สุขใจ', item: 'Wireless Mouse RGB', amount: 1290, status: 'Completed' },
-            { id: 'ORD-9018', name: 'คุณกิตติศักดิ์ ชัยชนะ', item: 'USB-C Hub 8-in-1', amount: 1590, status: 'Cancelled' },
-            { id: 'ORD-9017', name: 'คุณอรพรรณ รุ่งเรือง', item: 'Mechanical Keyboard', amount: 3200, status: 'Completed' }
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Sample Enterprise Fleet Data
+        let fleetData = [
+            { id: "GT-3501", model: "Nissan GT-R R35 Spec-V", status: "Operational", fuel: 82, speed: 118, dtc: "P0000 (None)", part: "In Stock (Spark Plugs)", temp: "88°C" },
+            { id: "NV-8820", model: "Nissan Navara Pro-4X Diesel", status: "Operational", fuel: 64, speed: 92, dtc: "P0000 (None)", part: "In Stock (Air Filter)", temp: "91°C" },
+            { id: "LF-1049", model: "Nissan Leaf EV Fleet Edition", status: "Warning", fuel: 24, speed: 45, dtc: "P0A80 (Hybrid Pack)", part: "Low Stock (Coolant Valve)", temp: "42°C" },
+            { id: "GT-3502", model: "Nissan GT-R Nismo Track Pack", status: "Operational", fuel: 91, speed: 142, dtc: "P0000 (None)", part: "In Stock (Brake Pads)", temp: "94°C" },
+            { id: "AR-5021", model: "Nissan Ariya e-4ORCE EV", status: "Maintenance", fuel: 12, speed: 0, dtc: "P0300 (Misfire/BMS)", part: "Ordered (OBD Sensor)", temp: "25°C" },
+            { id: "NV-8822", model: "Nissan Navara Commercial", status: "Operational", fuel: 75, speed: 80, dtc: "P0000 (None)", part: "In Stock (Oil Filter)", temp: "89°C" }
         ];
 
-        let mockTasks = [
-            { id: 1, title: 'ตรวจสอบคำสั่งซื้อค้างส่งประจำวัน', done: true },
-            { id: 2, title: 'อัปเดตสต็อกสินค้ากลุ่ม Electronics', done: false },
-            { id: 3, title: 'สรุปรายงานงบประจำเดือนให้ผู้บริหาร', done: false }
-        ];
+        let telemetryChart, healthChart;
 
-        // Global Chart References
-        let revenueChartInstance = null;
-        let categoryChartInstance = null;
-
-        // Initialize Application
-        document.addEventListener('DOMContentLoaded', () => {
-            initDateDisplay();
-            initThemeToggle();
-            initSidebarMobile();
-            initNotificationsDrawer();
-            renderTransactionsTable();
-            initFormHandlers();
-            renderTasks();
-            initQuickNotes();
-            initCharts();
-        });
-
-        // Set Current Date
-        function initDateDisplay() {
-            const options = { year: 'numeric', month: 'short', day: 'numeric' };
-            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('th-TH', options);
-        }
-
-        // Dark / Light Theme Logic
-        function initThemeToggle() {
-            const themeBtn = document.getElementById('themeToggleBtn');
-            const themeIcon = document.getElementById('themeIcon');
-
-            themeBtn.addEventListener('click', () => {
-                const isDark = document.documentElement.classList.toggle('dark');
-                themeIcon.className = isDark ? 'fa-solid fa-sun text-lg text-amber-400' : 'fa-solid fa-moon text-lg';
-                
-                // Refresh Charts colors on theme toggle
-                if (revenueChartInstance && categoryChartInstance) {
-                    revenueChartInstance.destroy();
-                    categoryChartInstance.destroy();
-                    initCharts();
-                }
-            });
-        }
-
-        // Mobile Sidebar Controls
-        function initSidebarMobile() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-            const openBtn = document.getElementById('openSidebarBtn');
-            const closeBtn = document.getElementById('closeSidebarBtn');
-
-            const toggleSidebar = (show) => {
-                if (show) {
-                    sidebar.classList.remove('-translate-x-full');
-                    overlay.classList.remove('hidden');
-                } else {
-                    sidebar.classList.add('-translate-x-full');
-                    overlay.classList.add('hidden');
-                }
-            };
-
-            openBtn.addEventListener('click', () => toggleSidebar(true));
-            closeBtn.addEventListener('click', () => toggleSidebar(false));
-            overlay.addEventListener('click', () => toggleSidebar(false));
-        }
-
-        // Notifications Drawer Toggle
-        function initNotificationsDrawer() {
-            const notifBtn = document.getElementById('notifBtn');
-            const notifDrawer = document.getElementById('notifDrawer');
-            const notifOverlay = document.getElementById('notifOverlay');
-            const closeBtn = document.getElementById('closeNotifDrawerBtn');
-            const notifDot = document.getElementById('notifDot');
-
-            const toggleDrawer = (open) => {
-                if (open) {
-                    notifDrawer.classList.remove('translate-x-full');
-                    notifOverlay.classList.remove('hidden');
-                    notifDot.classList.add('hidden'); // hide unread dot
-                } else {
-                    notifDrawer.classList.add('translate-x-full');
-                    notifOverlay.classList.add('hidden');
-                }
-            };
-
-            notifBtn.addEventListener('click', () => toggleDrawer(true));
-            closeBtn.addEventListener('click', () => toggleDrawer(false));
-            notifOverlay.addEventListener('click', () => toggleDrawer(false));
-
-            document.getElementById('clearAllNotifsBtn').addEventListener('click', () => {
-                document.getElementById('notifList').innerHTML = '<p class="text-xs text-slate-400 text-center py-6">ไม่มีการแจ้งเตือนใหม่</p>';
-            });
-        }
-
-        // Render Table & Filtering
-        function renderTransactionsTable() {
-            const tbody = document.getElementById('transactionsTbody');
-            const searchVal = document.getElementById('tableSearchInput').value.toLowerCase();
-            const statusVal = document.getElementById('tableStatusFilter').value;
-
+        // Render Table Rows
+        function renderTable(data) {
+            const tbody = document.getElementById('fleet-table-body');
             tbody.innerHTML = '';
 
-            const filteredData = mockTransactions.filter(item => {
-                const matchesSearch = item.name.toLowerCase().includes(searchVal) || item.id.toLowerCase().includes(searchVal) || item.item.toLowerCase().includes(searchVal);
+            data.forEach(item => {
+                let statusBadge = '';
+                if (item.status === 'Operational') {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>Operational</span>`;
+                } else if (item.status === 'Warning') {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                        <span class="w-1.5 h-1.5 bg-amber-500 rounded-full mr-1.5"></span>DTC Warning</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                        <span class="w-1.5 h-1.5 bg-rose-500 rounded-full mr-1.5"></span>Maintenance</span>`;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <div class="font-bold text-slate-800 text-sm">${item.model}</div>
+                        <div class="text-xs font-mono text-slate-400">${item.id}</div>
+                    </td>
+                    <td class="py-3 px-4">${statusBadge}</td>
+                    <td class="py-3 px-4">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-16 bg-slate-200 rounded-full h-1.5">
+                                <div class="bg-blue-600 h-1.5 rounded-full" style="width: ${item.fuel}%"></div>
+                            </div>
+                            <span class="text-xs font-mono font-semibold">${item.fuel}%</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4 font-mono font-medium text-slate-700">${item.speed} km/h</td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-600">${item.dtc}</td>
+                    <td class="py-3 px-4 text-xs text-slate-600">${item.part}</td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="inspectVehicle('${item.id}')" class="px-2.5 py-1 text-xs font-medium bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded transition-colors">
+                            Inspect OBD
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('record-count').innerText = `${data.length} Units Active`;
+        }
+
+        // Filter Table by Search & Dropdown
+        function filterTable() {
+            const searchVal = document.getElementById('table-search').value.toLowerCase();
+            const statusVal = document.getElementById('status-filter').value;
+
+            const filtered = fleetData.filter(item => {
+                const matchesSearch = item.model.toLowerCase().includes(searchVal) || item.id.toLowerCase().includes(searchVal);
                 const matchesStatus = statusVal === 'ALL' || item.status === statusVal;
                 return matchesSearch && matchesStatus;
             });
 
-            if (filteredData.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">ไม่พบข้อมูลตามเงื่อนไขที่ค้นหา</td></tr>`;
-                return;
-            }
-
-            filteredData.forEach(tr => {
-                let badgeClass = '';
-                let statusTh = '';
-                if (tr.status === 'Completed') {
-                    badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400';
-                    statusTh = 'สำเร็จ';
-                } else if (tr.status === 'Pending') {
-                    badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
-                    statusTh = 'รอดำเนินการ';
-                } else {
-                    badgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400';
-                    statusTh = 'ยกเลิก';
-                }
-
-                const trElement = document.createElement('tr');
-                trElement.className = 'hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors';
-                trElement.innerHTML = `
-                    <td class="py-3 px-2 font-semibold text-xs text-blue-600 dark:text-blue-400">${tr.id}</td>
-                    <td class="py-3 px-2 font-medium">${tr.name}</td>
-                    <td class="py-3 px-2 text-slate-500 dark:text-slate-400 text-xs">${tr.item}</td>
-                    <td class="py-3 px-2 font-semibold">฿${tr.amount.toLocaleString()}</td>
-                    <td class="py-3 px-2">
-                        <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full ${badgeClass}">${statusTh}</span>
-                    </td>
-                    <td class="py-3 px-2 text-right">
-                        <button onclick="deleteTransaction('${tr.id}')" class="p-1 text-slate-400 hover:text-rose-500 transition-colors">
-                            <i class="fa-regular fa-trash-can"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(trElement);
-            });
+            renderTable(filtered);
         }
 
-        // Delete Row Logic
-        function deleteTransaction(id) {
-            mockTransactions = mockTransactions.filter(item => item.id !== id);
-            renderTransactionsTable();
+        // Modal Operations
+        function inspectVehicle(id) {
+            const vehicle = fleetData.find(v => v.id === id);
+            if (!vehicle) return;
+
+            const modalContent = document.getElementById('modal-content');
+            modalContent.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">Vehicle Identifier</p>
+                        <p class="text-base font-bold text-slate-800">${vehicle.model}</p>
+                        <p class="text-xs font-mono text-slate-400">${vehicle.id}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">Coolant Temperature</p>
+                        <p class="text-base font-mono font-bold text-slate-800">${vehicle.temp}</p>
+                    </div>
+                </div>
+
+                <div class="border border-slate-200 rounded-lg p-4">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase mb-2">OBD-II Fault Log & Diagnosis</h4>
+                    <p class="text-sm font-mono text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">${vehicle.dtc}</p>
+                    <p class="text-xs text-slate-500 mt-2">CAN-Bus diagnostic indicates telemetry sensor variance outside manufacturer thresholds.</p>
+                </div>
+
+                <div class="border border-slate-200 rounded-lg p-4">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase mb-2">Recommended Spare Parts Stock</h4>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-slate-600">${vehicle.part}</span>
+                        <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Available in Warehouse</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('diagnostic-modal').classList.remove('hidden');
         }
 
-        // Table Event Listeners
-        document.getElementById('tableSearchInput').addEventListener('input', renderTransactionsTable);
-        document.getElementById('tableStatusFilter').addEventListener('change', renderTransactionsTable);
-
-        // Form Submission Logic
-        function initFormHandlers() {
-            const form = document.getElementById('addItemForm');
-            const quickAddBtn = document.getElementById('quickAddBtn');
-
-            form.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('itemNameInput').value;
-                const price = Number(document.getElementById('itemPriceInput').value);
-
-                // Add simulated transaction to table
-                const newId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
-                mockTransactions.unshift({
-                    id: newId,
-                    name: 'ลูกค้าทั่วไป (หน้าร้าน)',
-                    item: name,
-                    amount: price,
-                    status: 'Completed'
-                });
-
-                renderTransactionsTable();
-                form.reset();
-
-                // Flash feedback
-                alert('บันทึกเพิ่มสินค้าและสร้างคำสั่งซื้อสำเร็จ!');
-            });
-
-            quickAddBtn.addEventListener('click', () => {
-                document.getElementById('itemNameInput').focus();
-            });
+        function closeModal() {
+            document.getElementById('diagnostic-modal').classList.add('hidden');
         }
 
-        // Task List Management
-        function renderTasks() {
-            const taskList = document.getElementById('taskList');
-            const taskBadge = document.getElementById('taskCountBadge');
-            taskList.innerHTML = '';
-
-            const pendingCount = mockTasks.filter(t => !t.done).length;
-            taskBadge.innerText = `${pendingCount} งานคงเหลือ`;
-
-            mockTasks.forEach(task => {
-                const li = document.createElement('li');
-                li.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all';
-                li.innerHTML = `
-                    <label class="flex items-center space-x-3 cursor-pointer flex-1">
-                        <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
-                        <span class="text-xs font-medium ${task.done ? 'line-through text-slate-400' : ''}">${task.title}</span>
-                    </label>
-                    <button onclick="deleteTask(${task.id})" class="text-slate-400 hover:text-rose-500 text-xs px-2">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-                taskList.appendChild(li);
-            });
+        function openAddVehicleModal() {
+            document.getElementById('add-vehicle-modal').classList.remove('hidden');
         }
 
-        function toggleTask(id) {
-            const task = mockTasks.find(t => t.id === id);
-            if (task) {
-                task.done = !task.done;
-                renderTasks();
+        function closeAddVehicleModal() {
+            document.getElementById('add-vehicle-modal').classList.add('hidden');
+        }
+
+        function handleAddVehicle(e) {
+            e.preventDefault();
+            const model = document.getElementById('new-model').value;
+            const id = document.getElementById('new-vin').value;
+            const status = document.getElementById('new-status').value;
+            const fuel = parseInt(document.getElementById('new-fuel').value);
+            const speed = parseInt(document.getElementById('new-speed').value);
+
+            fleetData.unshift({
+                id: id,
+                model: model,
+                status: status,
+                fuel: fuel,
+                speed: speed,
+                dtc: status === 'Operational' ? 'P0000 (None)' : 'P0171 (System Lean)',
+                part: 'In Stock (Generic Sensor)',
+                temp: '89°C'
+            });
+
+            renderTable(fleetData);
+            closeAddVehicleModal();
+            document.getElementById('add-vehicle-form').reset();
+        }
+
+        function triggerPartOrder() {
+            alert("Spare parts order dispatched directly to Warehouse Inventory OS.");
+            closeModal();
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('nav a').forEach(el => {
+                el.classList.remove('bg-blue-600', 'text-white');
+                el.classList.add('text-slate-400');
+            });
+            const activeNav = document.getElementById(`nav-${tab}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-blue-600', 'text-white');
+                activeNav.classList.remove('text-slate-400');
             }
         }
 
-        function deleteTask(id) {
-            mockTasks = mockTasks.filter(t => t.id !== id);
-            renderTasks();
-        }
+        window.onload = function() {
+            renderTable(fleetData);
 
-        document.getElementById('addTaskBtn').addEventListener('click', () => {
-            const input = document.getElementById('newTaskInput');
-            if (input.value.trim() !== '') {
-                mockTasks.push({ id: Date.now(), title: input.value.trim(), done: false });
-                input.value = '';
-                renderTasks();
-            }
-        });
-
-        // Quick Notes Autosave Logic
-        function initQuickNotes() {
-            const textarea = document.getElementById('quickNoteTextarea');
-            const status = document.getElementById('noteSaveStatus');
-
-            // Load saved note
-            const savedNote = localStorage.getItem('apex_quick_note');
-            if (savedNote) textarea.value = savedNote;
-
-            textarea.addEventListener('input', () => {
-                status.innerText = 'กำลังบันทึก...';
-                localStorage.setItem('apex_quick_note', textarea.value);
-                setTimeout(() => {
-                    status.innerText = 'บันทึกเรียบร้อยแล้ว';
-                }, 500);
-            });
-
-            document.getElementById('clearNoteBtn').addEventListener('click', () => {
-                textarea.value = '';
-                localStorage.removeItem('apex_quick_note');
-                status.innerText = 'ล้างข้อมูลแล้ว';
-            });
-        }
-
-        // Initialize Chart.js Data Visualization
-        function initCharts() {
-            const isDark = document.documentElement.classList.contains('dark');
-            const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
-            const textColor = isDark ? '#94a3b8' : '#64748b';
-
-            // 1. Line Revenue Chart
-            const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
-            revenueChartInstance = new Chart(ctxRevenue, {
+            // Chart 1: Real-time Line Chart
+            const ctx1 = document.getElementById('telemetryChart').getContext('2d');
+            telemetryChart = new Chart(ctx1, {
                 type: 'line',
                 data: {
-                    labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+                    labels: ['00:00', '00:05', '00:10', '00:15', '00:20', '00:25', '00:30'],
                     datasets: [
                         {
-                            label: 'สัปดาห์นี้ (฿)',
-                            data: [120000, 190000, 150000, 220000, 280000, 310000, 290000],
-                            borderColor: '#0284c7',
-                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
-                            borderWidth: 3,
+                            label: 'Speed (km/h)',
+                            data: [85, 92, 110, 118, 105, 125, 118],
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.05)',
                             fill: true,
-                            tension: 0.4
+                            tension: 0.3
                         },
                         {
-                            label: 'สัปดาห์ที่แล้ว (฿)',
-                            data: [100000, 140000, 130000, 180000, 210000, 240000, 220000],
-                            borderColor: '#94a3b8',
+                            label: 'Engine RPM (/100)',
+                            data: [25, 28, 38, 42, 32, 48, 41],
+                            borderColor: '#9333ea',
+                            backgroundColor: 'transparent',
                             borderDash: [5, 5],
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.4
+                            tension: 0.3
                         }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: textColor, font: { family: 'Kanit' } } }
-                    },
+                    plugins: { legend: { position: 'top' } },
                     scales: {
-                        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Kanit' } } },
-                        y: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Kanit' } } }
+                        y: { grid: { color: '#f1f5f9' } },
+                        x: { grid: { display: false } }
                     }
                 }
             });
 
-            // 2. Category Doughnut Chart
-            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
-            categoryChartInstance = new Chart(ctxCategory, {
+            // Chart 2: Fleet Health Donut Chart
+            const ctx2 = document.getElementById('healthChart').getContext('2d');
+            healthChart = new Chart(ctx2, {
                 type: 'doughnut',
                 data: {
-                    labels: ['ไอที & คอมพิวเตอร์', 'เครื่องใช้ไฟฟ้า', 'อุปกรณ์เสริม', 'อื่นๆ'],
+                    labels: ['Operational', 'DTC Warning', 'Maintenance Req.'],
                     datasets: [{
-                        data: [45, 25, 20, 10],
-                        backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6'],
+                        data: [135, 4, 3],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
                         borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '75%',
-                    plugins: {
-                        legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Kanit', size: 11 } } }
-                    }
+                    plugins: { legend: { position: 'bottom' } },
+                    cutout: '70%'
                 }
             });
 
-            // Toggle Weekly/Monthly Chart dataset dynamically
-            document.getElementById('chartWeeklyBtn').addEventListener('click', function() {
-                this.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm transition-all';
-                document.getElementById('chartMonthlyBtn').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 transition-all';
-                
-                revenueChartInstance.data.labels = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
-                revenueChartInstance.data.datasets[0].data = [120000, 190000, 150000, 220000, 280000, 310000, 290000];
-                revenueChartInstance.update();
-            });
+            // Real-time simulated telemetry telemetry ticker
+            setInterval(() => {
+                if (telemetryChart) {
+                    const newSpeed = Math.floor(100 + Math.random() * 25);
+                    const newRpm = Math.floor(35 + Math.random() * 15);
+                    
+                    telemetryChart.data.datasets[0].data.shift();
+                    telemetryChart.data.datasets[0].data.push(newSpeed);
 
-            document.getElementById('chartMonthlyBtn').addEventListener('click', function() {
-                this.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm transition-all';
-                document.getElementById('chartWeeklyBtn').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 transition-all';
+                    telemetryChart.data.datasets[1].data.shift();
+                    telemetryChart.data.datasets[1].data.push(newRpm);
 
-                revenueChartInstance.data.labels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'];
-                revenueChartInstance.data.datasets[0].data = [850000, 920000, 1100000, 980000, 1250000, 1284500];
-                revenueChartInstance.update();
-            });
-        }
+                    telemetryChart.update('none');
+                }
+            }, 3000);
+        };
     </script>
 </body>
 </html>
