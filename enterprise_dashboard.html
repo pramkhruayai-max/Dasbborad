@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="th" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Analytics & Inventory Dashboard</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Kanit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts (Inter & Kanit) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Inter', 'Kanit', sans-serif; }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-300">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 transition-transform duration-300 transform -translate-x-full md:translate-x-0 flex flex-col justify-between">
+            <div>
+                <!-- Brand Header -->
+                <div class="h-16 flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
+                            <i class="fa-solid fa-chart-line text-lg"></i>
+                        </div>
+                        <span class="font-bold text-lg tracking-wide bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">ApexDash</span>
+                    </div>
+                    <button id="closeSidebarBtn" class="md:hidden text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="p-4 space-y-1.5">
+                    <a href="#overview" class="flex items-center space-x-3 px-4 py-3 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium transition-all">
+                        <i class="fa-solid fa-house w-5 text-center"></i>
+                        <span>ภาพรวม (Overview)</span>
+                    </a>
+                    <a href="#analytics" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+                        <span>วิเคราะห์ข้อมูล (Analytics)</span>
+                    </a>
+                    <a href="#inventory" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
+                        <i class="fa-solid fa-boxes-stacked w-5 text-center"></i>
+                        <span>คลังสินค้า (Inventory)</span>
+                    </a>
+                    <a href="#transactions" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
+                        <i class="fa-solid fa-receipt w-5 text-center"></i>
+                        <span>รายการสั่งซื้อ (Orders)</span>
+                    </a>
+                    <a href="#tasks" class="flex items-center space-x-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-slate-100 font-medium transition-all">
+                        <i class="fa-solid fa-check-double w-5 text-center"></i>
+                        <span>งานที่ต้องทำ (Tasks)</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- User Profile Section -->
+            <div class="p-4 border-t border-slate-200 dark:border-slate-700">
+                <div class="flex items-center space-x-3 p-2 rounded-xl bg-slate-100 dark:bg-slate-700/50">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" alt="Avatar" class="w-10 h-10 rounded-full object-cover ring-2 ring-blue-500">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold truncate">นันท์นภัส สุขเสริฐ</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sidebar Mobile Overlay -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-slate-900/50 z-20 hidden md:hidden"></div>
+
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden md:ml-64">
+            <!-- Top Navbar -->
+            <header class="h-16 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between px-4 md:px-8 z-10">
+                <div class="flex items-center space-x-4">
+                    <button id="openSidebarBtn" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+                    <!-- Global Search -->
+                    <div class="relative hidden sm:block w-64 md:w-80">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" placeholder="ค้นหาข้อมูล, คำสั่งซื้อ, หรือรายการ..." class="w-full pl-9 pr-4 py-2 text-sm bg-slate-100 dark:bg-slate-700/50 rounded-xl border-none focus:ring-2 focus:ring-blue-500 dark:text-slate-100 outline-none transition-all">
+                    </div>
+                </div>
+
+                <!-- Actions Right -->
+                <div class="flex items-center space-x-3">
+                    <!-- Quick Add Button -->
+                    <button id="quickAddBtn" class="hidden sm:flex items-center space-x-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all shadow-sm">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                        <span>เพิ่มสินค้าใหม่</span>
+                    </button>
+
+                    <!-- Notifications Toggle Button -->
+                    <button id="notifBtn" class="relative p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all">
+                        <i class="fa-regular fa-bell text-lg"></i>
+                        <span id="notifDot" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-800"></span>
+                    </button>
+
+                    <!-- Dark Mode Toggle Button -->
+                    <button id="themeToggleBtn" class="p-2.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-all">
+                        <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                    </button>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8">
+
+                <!-- Page Header Title -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">ภาพรวมระบบแดชบอร์ด</h1>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">ยินดีต้อนรับกลับมา! นี่คือสรุปผลการดำเนินงานล่าสุดของคุณประจำวันนี้</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 flex items-center space-x-2 shadow-sm">
+                            <i class="fa-regular fa-calendar text-blue-500"></i>
+                            <span id="currentDateDisplay">01 ต.ค. 2026</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Key Metrics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- Metric 1: Total Revenue -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">รายได้รวมทั้งหมด</span>
+                            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                <i class="fa-solid fa-baht-sign text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 class="text-2xl font-bold">฿1,284,500</h3>
+                            <div class="mt-2 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 space-x-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>+12.5%</span>
+                                <span class="text-slate-400 font-normal">เทียบกับเดือนที่แล้ว</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 2: Active Orders -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">คำสั่งซื้อที่ดำเนินการ</span>
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                <i class="fa-solid fa-cart-shopping text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 class="text-2xl font-bold">1,420 รายการ</h3>
+                            <div class="mt-2 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 space-x-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>+8.2%</span>
+                                <span class="text-slate-400 font-normal">เทียบกับสัปดาห์ที่แล้ว</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 3: Inventory Alerts -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">เตือนสต็อกใกล้หมด</span>
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 class="text-2xl font-bold">14 รายการ</h3>
+                            <div class="mt-2 flex items-center text-xs font-semibold text-rose-500 space-x-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>+3 รายการ</span>
+                                <span class="text-slate-400 font-normal">ต้องสั่งซื้อเพิ่มด่วน</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 4: Active Users -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm hover:shadow-md transition-all">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm font-medium text-slate-500 dark:text-slate-400">ผู้ใช้งานแอกทีฟ</span>
+                            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                                <i class="fa-solid fa-users text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h3 class="text-2xl font-bold">8,930 คน</h3>
+                            <div class="mt-2 flex items-center text-xs font-semibold text-emerald-600 dark:text-emerald-400 space-x-1">
+                                <i class="fa-solid fa-arrow-trend-up"></i>
+                                <span>+15.3%</span>
+                                <span class="text-slate-400 font-normal">ยอดผู้ใช้เพิ่มขึ้น</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Revenue Trend Chart (2 Columns Wide) -->
+                    <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <div>
+                                <h2 class="text-lg font-bold">สถิติและแนวโน้มยอดขาย</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">เปรียบเทียบยอดขายรวมกับเป้าหมายรายสัปดาห์ / เดือน</p>
+                            </div>
+                            <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-700/60 p-1 rounded-xl self-start sm:self-auto">
+                                <button id="chartWeeklyBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm transition-all">รายสัปดาห์</button>
+                                <button id="chartMonthlyBtn" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all">รายเดือน</button>
+                            </div>
+                        </div>
+                        <div class="h-72">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown Doughnut Chart -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h2 class="text-lg font-bold">สัดส่วนหมวดหมู่สินค้า</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">จำแนกตามยอดขายรายหมวดหมู่</p>
+                            <div class="h-60 relative flex items-center justify-center">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex justify-around text-center text-xs text-slate-500">
+                            <div>
+                                <span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 mr-1"></span>ไอที & อิเล็กทรอนิกส์
+                            </div>
+                            <div>
+                                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1"></span>เครื่องใช้ไฟฟ้า
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <!-- Recent Transactions Table (2 Columns) -->
+                    <div class="lg:col-span-2 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-lg font-bold">รายการสั่งซื้อล่าสุด</h2>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">การทำรายการที่เกิดขึ้นในระบบล่าสุด</p>
+                            </div>
+                            <!-- Table Filter Controls -->
+                            <div class="flex items-center space-x-2">
+                                <input type="text" id="tableSearchInput" placeholder="ค้นหาชื่อ หรือ ID..." class="px-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-700/50 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <select id="tableStatusFilter" class="px-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-700/50 border border-transparent rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="ALL">สถานะทั้งหมด</option>
+                                    <option value="Completed">สำเสร็จ</option>
+                                    <option value="Pending">รอดำเนินการ</option>
+                                    <option value="Cancelled">ยกเลิก</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Table Area -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                        <th class="py-3 px-2">Order ID</th>
+                                        <th class="py-3 px-2">ชื่อลูกค้า</th>
+                                        <th class="py-3 px-2">สินค้า</th>
+                                        <th class="py-3 px-2">ยอดเงิน</th>
+                                        <th class="py-3 px-2">สถานะ</th>
+                                        <th class="py-3 px-2 text-right">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsTbody" class="divide-y divide-slate-100 dark:divide-slate-700/50 text-sm">
+                                    <!-- Dynamic rows inserted via JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Inventory Add Item Widget -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center space-x-2 mb-4">
+                                <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                    <i class="fa-solid fa-box-archive text-sm"></i>
+                                </div>
+                                <h2 class="text-lg font-bold">เพิ่มรายการสินค้าด่วน</h2>
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">บันทึกข้อมูลสินค้าใหม่เข้าคลังสินค้าทันที</p>
+
+                            <form id="addItemForm" class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">ชื่อสินค้า</label>
+                                    <input type="text" id="itemNameInput" required placeholder="เช่น Wireless Keyboard" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">หมวดหมู่</label>
+                                    <select id="itemCategoryInput" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                                        <option value="Electronics">Electronics & IT</option>
+                                        <option value="Appliances">Home Appliances</option>
+                                        <option value="Gadgets">Gadgets & Accessories</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">ราคา (บาท)</label>
+                                        <input type="number" id="itemPriceInput" required placeholder="1290" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400 mb-1">จำนวนคงเหลือ</label>
+                                        <input type="number" id="itemStockInput" required placeholder="50" class="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                                    </div>
+                                </div>
+                                <button type="submit" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl text-sm transition-all shadow-md shadow-blue-500/20">
+                                    <i class="fa-solid fa-plus text-xs mr-1"></i> บันทึกข้อมูลสินค้า
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Quick To-Do Widget -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold flex items-center space-x-2">
+                                <i class="fa-solid fa-list-check text-blue-500"></i>
+                                <span>รายการงานด่วนที่ต้องทำ (To-Do List)</span>
+                            </h2>
+                            <span id="taskCountBadge" class="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-semibold px-2.5 py-1 rounded-full">0 งาน</span>
+                        </div>
+
+                        <!-- Add Task Form -->
+                        <div class="flex space-x-2 mb-4">
+                            <input type="text" id="newTaskInput" placeholder="เพิ่มงานใหม่ที่ต้องทำ..." class="flex-1 px-3 py-2 text-sm bg-slate-100 dark:bg-slate-700/50 border-none rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                            <button id="addTaskBtn" class="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl text-sm font-medium hover:bg-slate-900 transition-all">เพิ่ม</button>
+                        </div>
+
+                        <!-- Task List -->
+                        <ul id="taskList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            <!-- Tasks populated dynamically -->
+                        </ul>
+                    </div>
+
+                    <!-- Quick Notes Widget -->
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h2 class="text-lg font-bold flex items-center space-x-2 mb-2">
+                                <i class="fa-regular fa-note-sticky text-amber-500"></i>
+                                <span>บันทึกความจำด่วน (Quick Note)</span>
+                            </h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">บันทึกช่วยจำสำหรับทีมงาน ข้อมูลจะถูกจัดเก็บโดยอัตโนมัติ</p>
+                            <textarea id="quickNoteTextarea" rows="4" class="w-full p-3 text-sm bg-amber-50/50 dark:bg-slate-700/30 border border-amber-200/60 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-amber-400 outline-none resize-none" placeholder="พิมพ์ข้อความบันทึกที่นี่..."></textarea>
+                        </div>
+                        <div class="flex justify-between items-center mt-3 text-xs text-slate-400">
+                            <span id="noteSaveStatus">บันทึกเรียบร้อยแล้ว</span>
+                            <button id="clearNoteBtn" class="text-rose-500 hover:underline">ล้างข้อความ</button>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Notifications Drawer -->
+    <div id="notifDrawer" class="fixed inset-y-0 right-0 w-80 sm:w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 z-50 transform translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
+        <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+            <h3 class="font-bold flex items-center space-x-2">
+                <i class="fa-regular fa-bell text-blue-500"></i>
+                <span>ศูนย์การแจ้งเตือน</span>
+            </h3>
+            <button id="closeNotifDrawerBtn" class="p-1 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-3" id="notifList">
+            <!-- Dynamic Notifications -->
+            <div class="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+                <p class="text-xs font-semibold text-blue-600 dark:text-blue-400">คำสั่งซื้อใหม่ #ORD-9021</p>
+                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">คุณสมชาย ชำระเงินจำนวน ฿4,500 สำเร็จแล้ว</p>
+                <span class="text-[10px] text-slate-400 mt-2 block">2 นาทีที่แล้ว</span>
+            </div>
+            <div class="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl">
+                <p class="text-xs font-semibold text-amber-600 dark:text-amber-400">เตือนสต็อกสินค้าต่ำ</p>
+                <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">สินค้า "Mechanical Keyboard" เหลือเพียง 2 ชิ้น</p>
+                <span class="text-[10px] text-slate-400 mt-2 block">1 ชั่วโมงที่แล้ว</span>
+            </div>
+        </div>
+        <div class="p-3 border-t border-slate-200 dark:border-slate-700 text-center">
+            <button id="clearAllNotifsBtn" class="text-xs text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">ล้างการแจ้งเตือนทั้งหมด</button>
+        </div>
+    </div>
+
+    <!-- Notifications Overlay Backdrop -->
+    <div id="notifOverlay" class="fixed inset-0 bg-slate-900/40 z-40 hidden"></div>
+
+    <script>
+        // Data Mockups State
+        let mockTransactions = [
+            { id: 'ORD-9021', name: 'คุณสมชาย สายชล', item: 'Gaming Monitor 27"', amount: 8900, status: 'Completed' },
+            { id: 'ORD-9020', name: 'คุณวิภาดา มั่นคง', item: 'Ergonomic Chair', amount: 4500, status: 'Pending' },
+            { id: 'ORD-9019', name: 'คุณณัฐพล สุขใจ', item: 'Wireless Mouse RGB', amount: 1290, status: 'Completed' },
+            { id: 'ORD-9018', name: 'คุณกิตติศักดิ์ ชัยชนะ', item: 'USB-C Hub 8-in-1', amount: 1590, status: 'Cancelled' },
+            { id: 'ORD-9017', name: 'คุณอรพรรณ รุ่งเรือง', item: 'Mechanical Keyboard', amount: 3200, status: 'Completed' }
+        ];
+
+        let mockTasks = [
+            { id: 1, title: 'ตรวจสอบคำสั่งซื้อค้างส่งประจำวัน', done: true },
+            { id: 2, title: 'อัปเดตสต็อกสินค้ากลุ่ม Electronics', done: false },
+            { id: 3, title: 'สรุปรายงานงบประจำเดือนให้ผู้บริหาร', done: false }
+        ];
+
+        // Global Chart References
+        let revenueChartInstance = null;
+        let categoryChartInstance = null;
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            initDateDisplay();
+            initThemeToggle();
+            initSidebarMobile();
+            initNotificationsDrawer();
+            renderTransactionsTable();
+            initFormHandlers();
+            renderTasks();
+            initQuickNotes();
+            initCharts();
+        });
+
+        // Set Current Date
+        function initDateDisplay() {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('th-TH', options);
+        }
+
+        // Dark / Light Theme Logic
+        function initThemeToggle() {
+            const themeBtn = document.getElementById('themeToggleBtn');
+            const themeIcon = document.getElementById('themeIcon');
+
+            themeBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                themeIcon.className = isDark ? 'fa-solid fa-sun text-lg text-amber-400' : 'fa-solid fa-moon text-lg';
+                
+                // Refresh Charts colors on theme toggle
+                if (revenueChartInstance && categoryChartInstance) {
+                    revenueChartInstance.destroy();
+                    categoryChartInstance.destroy();
+                    initCharts();
+                }
+            });
+        }
+
+        // Mobile Sidebar Controls
+        function initSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const openBtn = document.getElementById('openSidebarBtn');
+            const closeBtn = document.getElementById('closeSidebarBtn');
+
+            const toggleSidebar = (show) => {
+                if (show) {
+                    sidebar.classList.remove('-translate-x-full');
+                    overlay.classList.remove('hidden');
+                } else {
+                    sidebar.classList.add('-translate-x-full');
+                    overlay.classList.add('hidden');
+                }
+            };
+
+            openBtn.addEventListener('click', () => toggleSidebar(true));
+            closeBtn.addEventListener('click', () => toggleSidebar(false));
+            overlay.addEventListener('click', () => toggleSidebar(false));
+        }
+
+        // Notifications Drawer Toggle
+        function initNotificationsDrawer() {
+            const notifBtn = document.getElementById('notifBtn');
+            const notifDrawer = document.getElementById('notifDrawer');
+            const notifOverlay = document.getElementById('notifOverlay');
+            const closeBtn = document.getElementById('closeNotifDrawerBtn');
+            const notifDot = document.getElementById('notifDot');
+
+            const toggleDrawer = (open) => {
+                if (open) {
+                    notifDrawer.classList.remove('translate-x-full');
+                    notifOverlay.classList.remove('hidden');
+                    notifDot.classList.add('hidden'); // hide unread dot
+                } else {
+                    notifDrawer.classList.add('translate-x-full');
+                    notifOverlay.classList.add('hidden');
+                }
+            };
+
+            notifBtn.addEventListener('click', () => toggleDrawer(true));
+            closeBtn.addEventListener('click', () => toggleDrawer(false));
+            notifOverlay.addEventListener('click', () => toggleDrawer(false));
+
+            document.getElementById('clearAllNotifsBtn').addEventListener('click', () => {
+                document.getElementById('notifList').innerHTML = '<p class="text-xs text-slate-400 text-center py-6">ไม่มีการแจ้งเตือนใหม่</p>';
+            });
+        }
+
+        // Render Table & Filtering
+        function renderTransactionsTable() {
+            const tbody = document.getElementById('transactionsTbody');
+            const searchVal = document.getElementById('tableSearchInput').value.toLowerCase();
+            const statusVal = document.getElementById('tableStatusFilter').value;
+
+            tbody.innerHTML = '';
+
+            const filteredData = mockTransactions.filter(item => {
+                const matchesSearch = item.name.toLowerCase().includes(searchVal) || item.id.toLowerCase().includes(searchVal) || item.item.toLowerCase().includes(searchVal);
+                const matchesStatus = statusVal === 'ALL' || item.status === statusVal;
+                return matchesSearch && matchesStatus;
+            });
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">ไม่พบข้อมูลตามเงื่อนไขที่ค้นหา</td></tr>`;
+                return;
+            }
+
+            filteredData.forEach(tr => {
+                let badgeClass = '';
+                let statusTh = '';
+                if (tr.status === 'Completed') {
+                    badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400';
+                    statusTh = 'สำเร็จ';
+                } else if (tr.status === 'Pending') {
+                    badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400';
+                    statusTh = 'รอดำเนินการ';
+                } else {
+                    badgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400';
+                    statusTh = 'ยกเลิก';
+                }
+
+                const trElement = document.createElement('tr');
+                trElement.className = 'hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors';
+                trElement.innerHTML = `
+                    <td class="py-3 px-2 font-semibold text-xs text-blue-600 dark:text-blue-400">${tr.id}</td>
+                    <td class="py-3 px-2 font-medium">${tr.name}</td>
+                    <td class="py-3 px-2 text-slate-500 dark:text-slate-400 text-xs">${tr.item}</td>
+                    <td class="py-3 px-2 font-semibold">฿${tr.amount.toLocaleString()}</td>
+                    <td class="py-3 px-2">
+                        <span class="px-2.5 py-1 text-[11px] font-semibold rounded-full ${badgeClass}">${statusTh}</span>
+                    </td>
+                    <td class="py-3 px-2 text-right">
+                        <button onclick="deleteTransaction('${tr.id}')" class="p-1 text-slate-400 hover:text-rose-500 transition-colors">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(trElement);
+            });
+        }
+
+        // Delete Row Logic
+        function deleteTransaction(id) {
+            mockTransactions = mockTransactions.filter(item => item.id !== id);
+            renderTransactionsTable();
+        }
+
+        // Table Event Listeners
+        document.getElementById('tableSearchInput').addEventListener('input', renderTransactionsTable);
+        document.getElementById('tableStatusFilter').addEventListener('change', renderTransactionsTable);
+
+        // Form Submission Logic
+        function initFormHandlers() {
+            const form = document.getElementById('addItemForm');
+            const quickAddBtn = document.getElementById('quickAddBtn');
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('itemNameInput').value;
+                const price = Number(document.getElementById('itemPriceInput').value);
+
+                // Add simulated transaction to table
+                const newId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+                mockTransactions.unshift({
+                    id: newId,
+                    name: 'ลูกค้าทั่วไป (หน้าร้าน)',
+                    item: name,
+                    amount: price,
+                    status: 'Completed'
+                });
+
+                renderTransactionsTable();
+                form.reset();
+
+                // Flash feedback
+                alert('บันทึกเพิ่มสินค้าและสร้างคำสั่งซื้อสำเร็จ!');
+            });
+
+            quickAddBtn.addEventListener('click', () => {
+                document.getElementById('itemNameInput').focus();
+            });
+        }
+
+        // Task List Management
+        function renderTasks() {
+            const taskList = document.getElementById('taskList');
+            const taskBadge = document.getElementById('taskCountBadge');
+            taskList.innerHTML = '';
+
+            const pendingCount = mockTasks.filter(t => !t.done).length;
+            taskBadge.innerText = `${pendingCount} งานคงเหลือ`;
+
+            mockTasks.forEach(task => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/40 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all';
+                li.innerHTML = `
+                    <label class="flex items-center space-x-3 cursor-pointer flex-1">
+                        <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${task.id})" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                        <span class="text-xs font-medium ${task.done ? 'line-through text-slate-400' : ''}">${task.title}</span>
+                    </label>
+                    <button onclick="deleteTask(${task.id})" class="text-slate-400 hover:text-rose-500 text-xs px-2">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                taskList.appendChild(li);
+            });
+        }
+
+        function toggleTask(id) {
+            const task = mockTasks.find(t => t.id === id);
+            if (task) {
+                task.done = !task.done;
+                renderTasks();
+            }
+        }
+
+        function deleteTask(id) {
+            mockTasks = mockTasks.filter(t => t.id !== id);
+            renderTasks();
+        }
+
+        document.getElementById('addTaskBtn').addEventListener('click', () => {
+            const input = document.getElementById('newTaskInput');
+            if (input.value.trim() !== '') {
+                mockTasks.push({ id: Date.now(), title: input.value.trim(), done: false });
+                input.value = '';
+                renderTasks();
+            }
+        });
+
+        // Quick Notes Autosave Logic
+        function initQuickNotes() {
+            const textarea = document.getElementById('quickNoteTextarea');
+            const status = document.getElementById('noteSaveStatus');
+
+            // Load saved note
+            const savedNote = localStorage.getItem('apex_quick_note');
+            if (savedNote) textarea.value = savedNote;
+
+            textarea.addEventListener('input', () => {
+                status.innerText = 'กำลังบันทึก...';
+                localStorage.setItem('apex_quick_note', textarea.value);
+                setTimeout(() => {
+                    status.innerText = 'บันทึกเรียบร้อยแล้ว';
+                }, 500);
+            });
+
+            document.getElementById('clearNoteBtn').addEventListener('click', () => {
+                textarea.value = '';
+                localStorage.removeItem('apex_quick_note');
+                status.innerText = 'ล้างข้อมูลแล้ว';
+            });
+        }
+
+        // Initialize Chart.js Data Visualization
+        function initCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.05)';
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+
+            // 1. Line Revenue Chart
+            const ctxRevenue = document.getElementById('revenueChart').getContext('2d');
+            revenueChartInstance = new Chart(ctxRevenue, {
+                type: 'line',
+                data: {
+                    labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+                    datasets: [
+                        {
+                            label: 'สัปดาห์นี้ (฿)',
+                            data: [120000, 190000, 150000, 220000, 280000, 310000, 290000],
+                            borderColor: '#0284c7',
+                            backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'สัปดาห์ที่แล้ว (฿)',
+                            data: [100000, 140000, 130000, 180000, 210000, 240000, 220000],
+                            borderColor: '#94a3b8',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: textColor, font: { family: 'Kanit' } } }
+                    },
+                    scales: {
+                        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Kanit' } } },
+                        y: { grid: { color: gridColor }, ticks: { color: textColor, font: { family: 'Kanit' } } }
+                    }
+                }
+            });
+
+            // 2. Category Doughnut Chart
+            const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+            categoryChartInstance = new Chart(ctxCategory, {
+                type: 'doughnut',
+                data: {
+                    labels: ['ไอที & คอมพิวเตอร์', 'เครื่องใช้ไฟฟ้า', 'อุปกรณ์เสริม', 'อื่นๆ'],
+                    datasets: [{
+                        data: [45, 25, 20, 10],
+                        backgroundColor: ['#0284c7', '#10b981', '#f59e0b', '#8b5cf6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: textColor, font: { family: 'Kanit', size: 11 } } }
+                    }
+                }
+            });
+
+            // Toggle Weekly/Monthly Chart dataset dynamically
+            document.getElementById('chartWeeklyBtn').addEventListener('click', function() {
+                this.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm transition-all';
+                document.getElementById('chartMonthlyBtn').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 transition-all';
+                
+                revenueChartInstance.data.labels = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+                revenueChartInstance.data.datasets[0].data = [120000, 190000, 150000, 220000, 280000, 310000, 290000];
+                revenueChartInstance.update();
+            });
+
+            document.getElementById('chartMonthlyBtn').addEventListener('click', function() {
+                this.className = 'px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm transition-all';
+                document.getElementById('chartWeeklyBtn').className = 'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 transition-all';
+
+                revenueChartInstance.data.labels = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.'];
+                revenueChartInstance.data.datasets[0].data = [850000, 920000, 1100000, 980000, 1250000, 1284500];
+                revenueChartInstance.update();
+            });
+        }
+    </script>
+</body>
+</html>
