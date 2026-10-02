@@ -157,6 +157,8 @@ td .act{flex-wrap:nowrap;justify-content:flex-end}
 .tabs button:hover{color:#fff}
 .tabs button.on{color:#fff;background:linear-gradient(145deg,#2563eb,#1e40af);box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 6px 12px -4px rgba(37,99,235,.7);border-color:transparent}
 body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node{display:none}
+.alogo{display:flex;align-items:center;gap:12px}.alogo h1{font-size:16px;letter-spacing:.06em}.alogo h1 span{color:var(--cyan)}.alogo p{font-size:10px;color:var(--mute);font-family:'Chakra Petch'}
+.auth .sheet{max-width:440px}
 </style>
 </head>
 <body class="locked">
@@ -169,16 +171,18 @@ body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node
 
 <div class="auth" id="auth">
   <form class="sheet" id="f-auth" novalidate>
-    <div class="sh"><span id="a-title">Sign in</span></div>
-    <div class="tabs" id="a-tabs" role="tablist"><button type="button" data-sys="ops">Fleet &amp; Stock</button><button type="button" data-sys="work">Work Intake</button></div>
-    <div class="sb">
-      <div class="dim" id="a-hint"></div>
-      <div><label class="lbl" for="a-user">Username</label><input id="a-user" autocomplete="username" maxlength="30" required></div>
-      <div><label class="lbl" for="a-pass">Password</label><input id="a-pass" type="password" autocomplete="current-password" required></div>
-      <div id="a-confirm-wrap" hidden><label class="lbl" for="a-pass2">Confirm password</label><input id="a-pass2" type="password" autocomplete="new-password"></div>
+    <div class="sb" style="gap:16px;padding-bottom:26px">
+      <div class="alogo"><div class="logo"><i data-lucide="cpu"></i></div><div><h1>TELEMATIX<span>.PRO</span></h1><p>FLEET &amp; WORK SYSTEM</p></div></div>
+      <div class="tabs" id="a-tabs" role="tablist" style="padding:0"><button type="button" data-sys="ops">Fleet &amp; Stock</button><button type="button" data-sys="work">Work Intake</button></div>
+      <div><h2 id="a-title" style="font-size:20px">เข้าสู่ระบบ</h2><div class="dim" id="a-hint" style="margin-top:4px"></div></div>
+      <div><label class="lbl" for="a-user">ชื่อผู้ใช้</label><input id="a-user" autocomplete="username" maxlength="30" required></div>
+      <div><label class="lbl" for="a-pass">รหัสผ่าน</label><input id="a-pass" type="password" autocomplete="current-password" required></div>
+      <div id="a-confirm-wrap" hidden><label class="lbl" for="a-pass2">ยืนยันรหัสผ่าน</label><input id="a-pass2" type="password" autocomplete="new-password"></div>
+      <div id="a-appr-wrap" class="box" hidden><h4>ผู้ใช้เดิมอนุมัติ</h4><div class="f2"><div><label class="lbl" for="a-au">ชื่อผู้ใช้เดิม</label><input id="a-au" autocomplete="off"></div><div><label class="lbl" for="a-ap">รหัสผ่านของเขา</label><input id="a-ap" type="password" autocomplete="off"></div></div></div>
       <div class="err" id="a-err" role="alert"></div>
-      <button class="btn" id="a-submit" type="submit" style="justify-content:center">Sign in</button>
-      <button class="link" type="button" id="a-reset" hidden>Forgot password? Reset account (erases all saved work data)</button>
+      <button class="btn" id="a-submit" type="submit" style="justify-content:center">เข้าสู่ระบบ</button>
+      <button class="link" type="button" id="a-toggle" style="text-align:center;text-decoration:none;color:var(--cyan);font-weight:600"></button>
+      <button class="link" type="button" id="a-reset" hidden></button>
     </div>
   </form>
 </div>
@@ -797,14 +801,22 @@ async function derive(pw,salt,iter){
   return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},k,256));
 }
 function sameBytes(a,b){ if(a.length!==b.length) return false; let d=0; for(let i=0;i<a.length;i++) d|=a[i]^b[i]; return d===0; }
-const getAuth=s=>{ try{ return JSON.parse(localStorage.getItem(K.auth(s))); }catch(e){ return null; } };
+const getAuth=s=>{ try{ const a=JSON.parse(localStorage.getItem(K.auth(s))); if(a&&Array.isArray(a.users)) return a; if(a&&a.user) return {users:[a]}; }catch(e){} return null; };
+const accounts=s=>(getAuth(s)||{users:[]}).users;
 const getFail=s=>{ try{ return JSON.parse(localStorage.getItem(K.fail(s)))||{n:0,until:0}; }catch(e){ return {n:0,until:0}; } };
+async function verify(sys,user,pw){
+  const u=accounts(sys).find(x=>x.user.toLowerCase()===user.toLowerCase());
+  if(!u){ await derive(pw,new Uint8Array(16),PBKDF2_ITER); return null; }
+  return sameBytes(await derive(pw,unb64(u.salt),u.iter||PBKDF2_ITER),unb64(u.hash))?u:null;
+}
+const waitSecs=sys=>Math.ceil((getFail(sys).until-Date.now())/1000);
+function recordFail(sys){ const f=getFail(sys); f.n=(f.n||0)+1; if(f.n>=5){ f.until=Date.now()+60000; f.n=0; } try{ localStorage.setItem(K.fail(sys),JSON.stringify(f)); }catch(e){} return f.until>Date.now(); }
 let curSys=(()=>{ try{ const s=sessionStorage.getItem('tlx_cur'); return SYS[s]?s:'ops'; }catch(e){ return 'ops'; } })();
-let authSys=curSys, lastActive=Date.now(), authBusy=false, unlocked=false, authSetup=false;
+let authSys=curSys, authMode='login', lastActive=Date.now(), authBusy=false, unlocked=false;
 ['mousemove','keydown','click','touchstart'].forEach(ev=>addEventListener(ev,()=>{ lastActive=Date.now(); },{passive:true}));
 
 function readSession(s){
-  try{ const x=JSON.parse(sessionStorage.getItem(K.sess(s))), a=getAuth(s); if(x&&a&&x.user===a.user&&x.exp>Date.now()) return x; }catch(e){}
+  try{ const x=JSON.parse(sessionStorage.getItem(K.sess(s))); if(x&&x.exp>Date.now()&&accounts(s).some(u=>u.user===x.user)) return x; }catch(e){}
   return null;
 }
 function saveSession(s,user){ try{ sessionStorage.setItem(K.sess(s),JSON.stringify({user,exp:Date.now()+IDLE_MS})); sessionStorage.setItem('tlx_cur',s); }catch(e){} }
@@ -815,18 +827,21 @@ function wipeData(){
   inited.work=false; inited.stock=false;
   ['#w-body','#j-body','#s-items','#m-body-rows'].forEach(q=>{ const el=$(q); if(el) el.innerHTML=''; });
 }
-function showAuth(msg,fatal,sys){
-  authSys=sys||curSys; const a=getAuth(authSys); authSetup=!a;
+function showAuth(msg,fatal,sys,mode){
+  authSys=sys||curSys; authMode=mode||'login'; const list=accounts(authSys), reg=authMode==='register', first=!list.length;
   document.body.classList.add('locked');
   $$('#a-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.sys===authSys));
-  $('#a-title').textContent=(authSetup?'Create account · ':'Sign in · ')+SYS[authSys].name;
-  $('#a-hint').textContent=authSetup?`First time in ${SYS[authSys].name}: choose a username and a password (min. 8 characters). This system has its own account and its own data, separate from the other system.`:`${SYS[authSys].name} — separate login and data.`;
-  $('#a-confirm-wrap').hidden=!authSetup; $('#a-reset').hidden=authSetup; $('#a-reset').textContent=`Forgot password? Reset ${SYS[authSys].name} account (erases only this system's data)`;
-  $('#a-pass').autocomplete=authSetup?'new-password':'current-password';
-  $('#a-submit').textContent=authSetup?'Create account':'Sign in';
-  $('#a-submit').disabled=!!fatal;
-  $('#a-err').textContent=msg||''; $('#a-pass').value=''; $('#a-pass2').value=''; $('#a-user').value=a?a.user:'';
-  if(!fatal) setTimeout(()=>(a?$('#a-pass'):$('#a-user')).focus(),30);
+  $('#a-title').textContent=reg?'สมัครสมาชิก':'เข้าสู่ระบบ';
+  $('#a-hint').textContent=reg?(first?`ระบบ ${SYS[authSys].name} ยังไม่มีบัญชี — ตั้งชื่อผู้ใช้และรหัสผ่านเพื่อเริ่มใช้งาน (รหัสอย่างน้อย 8 ตัว)`:`สมัครบัญชีใหม่ในระบบ ${SYS[authSys].name} — ต้องให้ผู้ใช้เดิมอนุมัติด้วยรหัสผ่านของเขา`)
+    :(first?`ระบบ ${SYS[authSys].name} ยังไม่มีบัญชี — กด “สมัครสมาชิก” ด้านล่างเพื่อเริ่มต้น`:`ระบบ ${SYS[authSys].name} · บัญชีและข้อมูลแยกจากอีกระบบ`);
+  $('#a-confirm-wrap').hidden=!reg; $('#a-appr-wrap').hidden=!(reg&&!first);
+  $('#a-pass').autocomplete=reg?'new-password':'current-password';
+  $('#a-submit').textContent=reg?'สมัครสมาชิก':'เข้าสู่ระบบ'; $('#a-submit').disabled=!!fatal;
+  $('#a-toggle').textContent=reg?'มีบัญชีแล้ว? เข้าสู่ระบบ':'ยังไม่มีบัญชี? สมัครสมาชิก'; $('#a-toggle').hidden=!!fatal;
+  $('#a-reset').hidden=reg||first; $('#a-reset').textContent=`ลืมรหัสผ่าน? รีเซ็ตระบบ ${SYS[authSys].name} (ลบบัญชีและข้อมูลของระบบนี้)`;
+  $('#a-err').textContent=msg||''; ['#a-pass','#a-pass2','#a-au','#a-ap'].forEach(q=>$(q).value='');
+  $('#a-user').value=(!reg&&list.length===1)?list[0].user:'';
+  if(!fatal) setTimeout(()=>(!reg&&list.length===1?$('#a-pass'):$('#a-user')).focus(),30);
 }
 function unlock(sys,user){
   curSys=sys; unlocked=true; lastActive=Date.now(); saveSession(sys,user);
@@ -848,38 +863,43 @@ function switchTo(sys){
 }
 $$('#a-tabs button').forEach(b=>b.addEventListener('click',()=>switchTo(b.dataset.sys)));
 $('#btn-switch').addEventListener('click',()=>switchTo(curSys==='ops'?'work':'ops'));
+$('#a-toggle').addEventListener('click',()=>showAuth('',false,authSys,authMode==='login'?'register':'login'));
 $('#f-auth').addEventListener('submit',async e=>{
   e.preventDefault(); if(authBusy) return; authBusy=true; const err=$('#a-err'); err.textContent=''; const sys=authSys;
   try{
-    const user=$('#a-user').value.trim(), pw=$('#a-pass').value;
-    if(authSetup){
-      if(user.length<3) return void(err.textContent='Username must be at least 3 characters.');
-      if(pw.length<8) return void(err.textContent='Password must be at least 8 characters.');
-      if(pw!==$('#a-pass2').value) return void(err.textContent='Passwords do not match.');
+    const user=$('#a-user').value.trim(), pw=$('#a-pass').value, w=waitSecs(sys);
+    if(w>0) return void(err.textContent=`ลองผิดหลายครั้งเกินไป รออีก ${w} วินาที`);
+    if(authMode==='register'){
+      const list=accounts(sys);
+      if(user.length<3||user.length>30||!/^[\w.\-\u0E00-\u0E7F]+$/.test(user)) return void(err.textContent='ชื่อผู้ใช้ 3–30 ตัว ใช้ตัวอักษร ตัวเลข . _ - ได้ (ไม่มีช่องว่าง)');
+      if(pw.length<8) return void(err.textContent='รหัสผ่านต้องมีอย่างน้อย 8 ตัว');
+      if(pw!==$('#a-pass2').value) return void(err.textContent='รหัสผ่านทั้งสองช่องไม่ตรงกัน');
+      if(list.some(u=>u.user.toLowerCase()===user.toLowerCase())) return void(err.textContent='ชื่อผู้ใช้นี้ถูกใช้แล้ว');
+      if(list.length){
+        const ok=await verify(sys,$('#a-au').value.trim(),$('#a-ap').value);
+        if(!ok){ err.textContent=recordFail(sys)?'ลองผิดหลายครั้งเกินไป ล็อก 60 วินาที':'ผู้ใช้เดิมที่อนุมัติ: ชื่อหรือรหัสผ่านไม่ถูกต้อง'; return; }
+      }
       const salt=crypto.getRandomValues(new Uint8Array(16)), hash=await derive(pw,salt,PBKDF2_ITER);
-      try{ localStorage.setItem(K.auth(sys),JSON.stringify({user,salt:b64(salt),hash:b64(hash),iter:PBKDF2_ITER})); }
-      catch(x){ return void(err.textContent='Browser storage is blocked — cannot save the account.'); }
+      try{ localStorage.setItem(K.auth(sys),JSON.stringify({users:list.concat({user,salt:b64(salt),hash:b64(hash),iter:PBKDF2_ITER})})); }
+      catch(x){ return void(err.textContent='เบราว์เซอร์ไม่อนุญาตให้บันทึก ไม่สามารถสร้างบัญชีได้'); }
       localStorage.removeItem(K.fail(sys)); unlock(sys,user); return;
     }
-    const f=getFail(sys), wait=Math.ceil((f.until-Date.now())/1000);
-    if(wait>0) return void(err.textContent=`Too many attempts. Try again in ${wait}s.`);
-    const a=getAuth(sys); if(!a) return showAuth('',false,sys);
-    const h=await derive(pw,unb64(a.salt),a.iter||PBKDF2_ITER);
-    if(user.toLowerCase()===a.user.toLowerCase()&&sameBytes(h,unb64(a.hash))){ localStorage.removeItem(K.fail(sys)); unlock(sys,a.user); }
-    else{ f.n=(f.n||0)+1; if(f.n>=5){ f.until=Date.now()+60000; f.n=0; } try{ localStorage.setItem(K.fail(sys),JSON.stringify(f)); }catch(x){}
-      err.textContent=f.until>Date.now()?'Too many attempts. Locked for 60 seconds.':'Wrong username or password.'; $('#a-pass').value=''; }
+    if(!accounts(sys).length) return void(err.textContent='ยังไม่มีบัญชี กรุณากด “สมัครสมาชิก” ก่อน');
+    const u=await verify(sys,user,pw);
+    if(u){ localStorage.removeItem(K.fail(sys)); unlock(sys,u.user); }
+    else{ err.textContent=recordFail(sys)?'ลองผิดหลายครั้งเกินไป ล็อก 60 วินาที':'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'; $('#a-pass').value=''; }
   }finally{ authBusy=false; }
 });
 $('#a-reset').addEventListener('click',()=>{
-  const sys=authSys; if(!confirm(`Reset the ${SYS[sys].name} account? This ERASES its login and ALL its saved data in this browser. The other system is not affected.`)) return;
+  const sys=authSys; if(!confirm(`รีเซ็ตระบบ ${SYS[sys].name}? จะลบบัญชีและข้อมูลทั้งหมดของระบบนี้ในเบราว์เซอร์นี้ (อีกระบบไม่ถูกลบ)`)) return;
   localStorage.removeItem(K.auth(sys)); localStorage.removeItem(K.fail(sys)); SYS[sys].stores().forEach(x=>localStorage.removeItem(x.key));
-  try{ sessionStorage.removeItem(K.sess(sys)); }catch(e){} wipeData(); showAuth('Account reset. Create a new one.',false,sys);
+  try{ sessionStorage.removeItem(K.sess(sys)); }catch(e){} wipeData(); showAuth('รีเซ็ตแล้ว — สมัครสมาชิกใหม่ได้เลย',false,sys,'register');
 });
-$('#btn-logout').addEventListener('click',()=>lock('Signed out.',curSys));
+$('#btn-logout').addEventListener('click',()=>lock('ออกจากระบบแล้ว',curSys));
 setInterval(()=>{ if(!unlocked) return;
-  if(Date.now()-lastActive>IDLE_MS) lock('Signed out after 30 minutes of inactivity.',curSys); else { const s=readSession(curSys); if(s) saveSession(curSys,s.user); else lock('Session expired.',curSys); } },15000);
+  if(Date.now()-lastActive>IDLE_MS) lock('ออกจากระบบอัตโนมัติ (ไม่ได้ใช้งาน 30 นาที)',curSys); else { const s=readSession(curSys); if(s) saveSession(curSys,s.user); else lock('เซสชันหมดอายุ',curSys); } },15000);
 function boot(){
-  if(!(window.crypto&&crypto.subtle)) return showAuth('This page needs HTTPS (GitHub Pages is fine) or localhost to protect the password.',true);
+  if(!(window.crypto&&crypto.subtle)) return showAuth('หน้านี้ต้องเปิดผ่าน HTTPS (GitHub Pages ใช้ได้) หรือ localhost เพื่อป้องกันรหัสผ่าน',true);
   const s=readSession(curSys); s?unlock(curSys,s.user):showAuth('',false,curSys);
 }
 
