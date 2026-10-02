@@ -146,11 +146,20 @@ body.locked .auth{display:flex}
 .f3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .pv{font-size:12px}.pv th,.pv td{padding:6px 10px}
 .act{display:flex;gap:10px;flex-wrap:wrap}
-.grid>*{min-width:0}
 @media(max-width:1100px){.kpis.four{grid-template-columns:repeat(2,1fr)}}
+.grid>*{min-width:0}
+input[type=checkbox]{padding:0;box-shadow:none}
+.chk{width:20px;height:20px;accent-color:#34d399;cursor:pointer}
+.b-wait{color:var(--cyan);background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.3)}
+td .act{flex-wrap:nowrap;justify-content:flex-end}
+.tabs{display:flex;gap:8px;padding:14px 22px 0}
+.tabs button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line);background:#0b1220;color:var(--mute);font:600 13px 'Chakra Petch',sans-serif;cursor:pointer;box-shadow:inset 0 2px 5px rgba(0,0,0,.6);transition:.15s}
+.tabs button:hover{color:#fff}
+.tabs button.on{color:#fff;background:linear-gradient(145deg,#2563eb,#1e40af);box-shadow:0 1px 0 rgba(255,255,255,.3) inset,0 6px 12px -4px rgba(37,99,235,.7);border-color:transparent}
+body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node{display:none}
 </style>
 </head>
-<body>
+<body class="locked">
 
 <div class="bg" aria-hidden="true">
   <canvas id="bgfx"></canvas>
@@ -161,6 +170,7 @@ body.locked .auth{display:flex}
 <div class="auth" id="auth">
   <form class="sheet" id="f-auth" novalidate>
     <div class="sh"><span id="a-title">Sign in</span></div>
+    <div class="tabs" id="a-tabs" role="tablist"><button type="button" data-sys="ops">Fleet &amp; Stock</button><button type="button" data-sys="work">Work Intake</button></div>
     <div class="sb">
       <div class="dim" id="a-hint"></div>
       <div><label class="lbl" for="a-user">Username</label><input id="a-user" autocomplete="username" maxlength="30" required></div>
@@ -180,15 +190,17 @@ body.locked .auth{display:flex}
       <div><h1>TELEMATIX<span>.PRO</span></h1><p>OBD-II / FLEET OS v4.3</p></div>
     </div>
     <nav class="nav" id="nav">
-      <small>CORE SYSTEMS</small>
-      <a href="#dashboard" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>Executive Overview</span></a>
-      <a href="#telematics" data-view="telematics"><i data-lucide="activity"></i><span>Fleet Telematics</span></a>
-      <a href="#diagnostics" data-view="diagnostics"><i data-lucide="wrench"></i><span>OBD-II Diagnostics</span></a>
-      <a href="#inventory" data-view="inventory"><i data-lucide="boxes"></i><span>Parts &amp; Spare Stock</span></a>
-      <small>MANAGEMENT</small>
-      <a href="#gps" data-view="gps"><i data-lucide="navigation"></i><span>GPS &amp; Geofence</span></a>
-      <a href="#reports" data-view="reports"><i data-lucide="file-bar-chart"></i><span>Fleet Reports</span></a>
-      <a href="#work" data-view="work"><i data-lucide="wallet"></i><span>Work Intake</span></a>
+      <small data-sys="ops">CORE SYSTEMS</small>
+      <a href="#dashboard" data-view="dashboard" data-sys="ops"><i data-lucide="layout-dashboard"></i><span>Executive Overview</span></a>
+      <a href="#telematics" data-view="telematics" data-sys="ops"><i data-lucide="activity"></i><span>Fleet Telematics</span></a>
+      <a href="#diagnostics" data-view="diagnostics" data-sys="ops"><i data-lucide="wrench"></i><span>OBD-II Diagnostics</span></a>
+      <a href="#inventory" data-view="inventory" data-sys="ops"><i data-lucide="boxes"></i><span>Parts &amp; Spare Stock</span></a>
+      <small data-sys="ops">MANAGEMENT</small>
+      <a href="#gps" data-view="gps" data-sys="ops"><i data-lucide="navigation"></i><span>GPS &amp; Geofence</span></a>
+      <a href="#reports" data-view="reports" data-sys="ops"><i data-lucide="file-bar-chart"></i><span>Fleet Reports</span></a>
+      <a href="#stock" data-view="stock" data-sys="ops"><i data-lucide="package"></i><span>Stock &amp; Incoming</span></a>
+      <small data-sys="work">WORK SYSTEM</small>
+      <a href="#work" data-view="work" data-sys="work"><i data-lucide="wallet"></i><span>Work Intake</span></a>
     </nav>
   </div>
   <div class="node">
@@ -207,8 +219,9 @@ body.locked .auth{display:flex}
     <div class="hr">
       <button class="btn" id="btn-add"><i data-lucide="plus"></i>Register Vehicle</button>
       <div class="ava"><i data-lucide="user" style="width:16px;height:16px"></i></div>
-      <div class="who"><span id="who-name" style="color:var(--ink);font-size:12px">Fleet Director</span><br><span>Nissan Motor Asia</span></div>
-      <button class="btn ghost" id="btn-logout" aria-label="Sign out"><i data-lucide="log-out"></i></button>
+      <div class="who"><span id="who-name" style="color:var(--ink);font-size:12px">Fleet Director</span><br><span id="sys-name">Fleet &amp; Stock</span></div>
+      <button class="btn ghost" id="btn-switch" aria-label="Switch system" title="Switch system"><i data-lucide="repeat"></i></button>
+      <button class="btn ghost" id="btn-logout" aria-label="Sign out" title="Sign out"><i data-lucide="log-out"></i></button>
     </div>
   </header>
 
@@ -298,6 +311,56 @@ body.locked .auth{display:flex}
       </div>
     </section>
 
+    <!-- ===== STOCK & INCOMING ===== -->
+    <section class="view" data-view="stock">
+      <div class="card">
+        <div class="tools" style="margin:0">
+          <div class="act" style="align-items:flex-end">
+            <div><label class="lbl" for="s-item">Item</label><select id="s-item" style="min-width:210px"></select></div>
+            <div><label class="lbl" for="s-range">Chart range (ending at latest movement)</label><select id="s-range"><option value="14">Last 14 days</option><option value="30" selected>Last 30 days</option><option value="60">Last 60 days</option><option value="90">Last 90 days</option><option value="all">All data</option></select></div>
+          </div>
+          <div class="act">
+            <button class="btn" id="s-imp-moves"><i data-lucide="upload"></i>Import stock Excel</button>
+            <button class="btn ghost" id="s-add-mov"><i data-lucide="plus"></i>Add movement</button>
+            <button class="btn ghost" id="s-export"><i data-lucide="download"></i>Export Excel</button>
+          </div>
+        </div>
+      </div>
+      <div class="grid kpis four">
+        <div class="card kpi tilt" style="--c:#34d399"><div><p>STOCK ON HAND</p><div class="num" id="s-onhand">0</div><em id="s-onhand-sub" style="color:var(--mute)">pcs</em></div><div class="ico"><i data-lucide="package"></i></div></div>
+        <div class="card kpi tilt" style="--c:#fbbf24"><div><p>JOBS NOT ARRIVED</p><div class="num" id="s-jobs">0</div><em id="s-jobs-sub" style="color:var(--mute)">&nbsp;</em></div><div class="ico"><i data-lucide="truck"></i></div></div>
+        <div class="card kpi tilt" style="--c:#38bdf8"><div><p>PIECES STILL TO COME</p><div class="num" id="s-pcs">0</div><em style="color:var(--mute)">pcs outstanding</em></div><div class="ico"><i data-lucide="hourglass"></i></div></div>
+        <div class="card kpi tilt" style="--c:#a78bfa"><div><p>RECEIVED THIS MONTH</p><div class="num" id="s-recv">0</div><em style="color:var(--mute)">pcs</em></div><div class="ico"><i data-lucide="check-circle-2"></i></div></div>
+      </div>
+      <div class="grid two">
+        <div class="card tilt"><h3>Daily Stock Remaining</h3><div class="sub" id="s-bal-sub">pcs at end of each day</div><div class="chart"><canvas id="c-sbal"></canvas></div></div>
+        <div class="card tilt"><h3>Received vs Issued per Day</h3><div class="sub">pcs</div><div class="chart"><canvas id="c-sflow"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="tools">
+          <div style="display:flex;gap:12px;align-items:baseline"><h3>Incoming Jobs</h3><span class="dim mono" id="j-count"></span></div>
+          <div class="act">
+            <input id="j-q" placeholder="Search item / job ref" style="width:210px" aria-label="Search jobs">
+            <select id="j-f" aria-label="Job status filter"><option value="pending">Not arrived yet</option><option value="done">Arrived</option><option value="all">All jobs</option></select>
+            <button class="btn" id="s-imp-jobs"><i data-lucide="upload"></i>Import jobs Excel</button>
+            <button class="btn ghost" id="s-add-job"><i data-lucide="plus"></i>Add job</button>
+          </div>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th style="width:44px">ARRIVED</th><th>ITEM</th><th>JOB / REF</th><th class="right">EXPECTED</th><th class="right">RECEIVED</th><th class="right">REMAINING</th><th>DUE</th><th>STATUS</th><th></th></tr></thead>
+          <tbody id="j-body"></tbody>
+        </table></div>
+        <div class="dim" id="j-note" style="margin-top:10px">Tick the box when a job arrives, then confirm how many pieces came in. The pieces are added to stock automatically.</div>
+      </div>
+      <div class="grid two">
+        <div class="card"><h3 style="margin-bottom:12px">Stock by Item</h3><div class="tw"><table>
+          <thead><tr><th>ITEM</th><th class="right">IN</th><th class="right">OUT</th><th class="right">ON HAND</th><th class="right">TO COME</th></tr></thead><tbody id="s-items"></tbody></table></div></div>
+        <div class="card tilt"><h3>Pieces Still to Come, by Item</h3><div class="sub">pcs outstanding</div><div class="chart"><canvas id="c-spend"></canvas></div></div>
+      </div>
+      <div class="card"><h3 style="margin-bottom:12px">Recent Movements</h3><div class="tw"><table>
+        <thead><tr><th>DATE</th><th>ITEM</th><th>TYPE</th><th class="right">QTY</th><th>NOTE</th><th></th></tr></thead><tbody id="m-body-rows"></tbody></table></div></div>
+    </section>
+
     <!-- ===== WORK INTAKE ===== -->
     <section class="view" data-view="work">
       <div class="grid kpis four">
@@ -363,22 +426,18 @@ body.locked .auth{display:flex}
     </form>
   </div>
 </div>
-<!-- Modal: import -->
+<datalist id="dl-items"></datalist>
+<!-- Modal: import (generic) -->
 <div class="modal" id="m-import" role="dialog" aria-modal="true">
   <div class="sheet w">
-    <div class="sh"><span>Import from Excel / CSV</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
+    <div class="sh"><span id="imp-title">Import from Excel / CSV</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
     <div class="sb scroll">
       <div class="dim mono" id="imp-file"></div>
       <div class="f3">
         <div><label class="lbl" for="imp-sheet">Sheet</label><select id="imp-sheet"></select></div>
         <div><label class="lbl" for="imp-mode">Import mode</label><select id="imp-mode"><option value="append">Add to existing data</option><option value="replace">Replace all existing data</option></select></div>
       </div>
-      <div class="f3">
-        <div><label class="lbl" for="imp-date">Date column *</label><select id="imp-date"></select></div>
-        <div><label class="lbl" for="imp-amt">Amount column *</label><select id="imp-amt"></select></div>
-        <div><label class="lbl" for="imp-desc">Description column</label><select id="imp-desc"></select></div>
-        <div><label class="lbl" for="imp-cat">Category / customer column</label><select id="imp-cat"></select></div>
-      </div>
+      <div class="f3" id="imp-fields"></div>
       <label class="dim" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="imp-dedupe" checked style="width:auto">Skip rows already in the system (safe to re-import the same file)</label>
       <div class="box"><h4>PREVIEW (first 5 valid rows)</h4><div class="tw"><table class="pv" id="imp-prev"></table></div><div class="dim" id="imp-sum" style="margin-top:8px"></div></div>
     </div>
@@ -386,7 +445,7 @@ body.locked .auth{display:flex}
   </div>
 </div>
 
-<!-- Modal: add record -->
+<!-- Modal: add work record -->
 <div class="modal" id="m-rec" role="dialog" aria-modal="true">
   <div class="sheet s">
     <div class="sh"><span>Add Work Record</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
@@ -397,6 +456,57 @@ body.locked .auth{display:flex}
       </div>
       <div><label class="lbl" for="r-desc">Description</label><input id="r-desc" maxlength="200"></div>
       <div><label class="lbl" for="r-cat">Category / customer</label><input id="r-cat" maxlength="80"></div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:6px"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn">Save</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: job arrived -->
+<div class="modal" id="m-recv" role="dialog" aria-modal="true">
+  <div class="sheet s">
+    <div class="sh"><span>Job arrived — how many pieces?</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
+    <form id="f-recv" class="sb">
+      <div class="box" id="recv-info"></div>
+      <div class="f2">
+        <div><label class="lbl" for="recv-qty">Pieces received</label><input id="recv-qty" type="number" min="0" step="any" required></div>
+        <div><label class="lbl" for="recv-date">Date received</label><input id="recv-date" type="date" required></div>
+      </div>
+      <div class="dim">Receiving fewer than expected keeps the job open with the remaining pieces.</div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:6px"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn">Confirm arrival</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: add stock movement -->
+<div class="modal" id="m-mov" role="dialog" aria-modal="true">
+  <div class="sheet s">
+    <div class="sh"><span>Add Stock Movement</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
+    <form id="f-mov" class="sb">
+      <div><label class="lbl" for="mv-item">Item</label><input id="mv-item" list="dl-items" required maxlength="80" autocomplete="off"></div>
+      <div class="f2">
+        <div><label class="lbl" for="mv-type">Type</label><select id="mv-type"><option value="in">Received (in)</option><option value="out">Issued (out)</option></select></div>
+        <div><label class="lbl" for="mv-qty">Quantity (pcs)</label><input id="mv-qty" type="number" min="0" step="any" required></div>
+      </div>
+      <div class="f2">
+        <div><label class="lbl" for="mv-date">Date</label><input id="mv-date" type="date" required></div>
+        <div><label class="lbl" for="mv-note">Note</label><input id="mv-note" maxlength="120"></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:6px"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn">Save</button></div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: add job -->
+<div class="modal" id="m-job" role="dialog" aria-modal="true">
+  <div class="sheet s">
+    <div class="sh"><span>Add Incoming Job</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
+    <form id="f-job" class="sb">
+      <div><label class="lbl" for="jb-item">Item</label><input id="jb-item" list="dl-items" required maxlength="80" autocomplete="off"></div>
+      <div class="f2">
+        <div><label class="lbl" for="jb-ref">Job / PO ref</label><input id="jb-ref" maxlength="60"></div>
+        <div><label class="lbl" for="jb-qty">Expected pieces</label><input id="jb-qty" type="number" min="0" step="any" required></div>
+      </div>
+      <div><label class="lbl" for="jb-due">Due date</label><input id="jb-due" type="date"></div>
       <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:6px"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn">Save</button></div>
     </form>
   </div>
@@ -436,12 +546,12 @@ const stCol = {ok:C.green,warn:C.amber,bad:C.rose};
 let selectedId = null;
 
 /* ============ Router (แก้บั๊กหลัก: เมนูเดิมแค่เปลี่ยนสี ไม่มีหน้าให้สลับ) ============ */
-const VIEWS = {dashboard:'Executive Telematics Dashboard',telematics:'Fleet Telematics',diagnostics:'OBD-II Diagnostics',inventory:'Parts & Spare Stock',gps:'GPS & Geofence',reports:'Fleet Reports',work:'Work Intake'};
+const VIEWS = {dashboard:'Executive Telematics Dashboard',telematics:'Fleet Telematics',diagnostics:'OBD-II Diagnostics',inventory:'Parts & Spare Stock',gps:'GPS & Geofence',reports:'Fleet Reports',stock:'Stock & Incoming',work:'Work Intake'};
 const inited = {};
 const charts = {};
 function route(){
   if(document.body.classList.contains('locked')) return;
-  let v=(location.hash||'#dashboard').slice(1); if(!VIEWS[v]) v='dashboard';
+  let v=(location.hash||'').slice(1); if(!VIEWS[v]||!SYS[curSys].views.includes(v)){ v=SYS[curSys].home; history.replaceState(null,'','#'+v); }
   $$('.view').forEach(e=>e.classList.toggle('active',e.dataset.view===v));
   $$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.view===v));
   $('#page-title').textContent=VIEWS[v]; document.title=VIEWS[v]+' · TELEMATIX.PRO';
@@ -498,7 +608,7 @@ const axes = {
 function make(id,cfg){ const el=document.getElementById(id); if(!el) return null; if(charts[id]) charts[id].destroy(); return charts[id]=new Chart(el.getContext('2d'),cfg); }
 function barChart(id,labels,data,colors,extra={}){
   return make(id,{type:'bar',data:{labels,datasets:[{data,base3d:colors,backgroundColor:barFill(colors),borderWidth:0,barPercentage:.55,categoryPercentage:.8,...(extra.ds||{})}]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20,right:22}},plugins:{legend:{display:false},bar3d:{depth:12},tooltip:extra.tip||{}},scales:{y:{...axes.y,...(extra.y||{})},x:axes.x}},plugins:[bar3d]});
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20,right:22}},plugins:{legend:{display:false},bar3d:{depth:extra.depth||12},tooltip:extra.tip||{}},scales:{y:{...axes.y,...(extra.y||{})},x:axes.x}},plugins:[bar3d]});
 }
 function legend(id,items){ $(id).innerHTML=items.map(i=>`<div><span><i style="background:${i.c}"></i>${esc(i.l)}</span><b class="mono">${i.v}</b></div>`).join(''); }
 function donutChart(id,lg,labels,data,colors){
@@ -672,8 +782,14 @@ if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
   vid.src=VIDEO_SRC; vid.play&&vid.play().catch(()=>{});
 })();
 
-/* ============ Auth (ฝั่งเบราว์เซอร์เท่านั้น — ดูหมายเหตุความปลอดภัยในคำตอบ) ============ */
-const AUTH_KEY='tlx_auth_v1', SESS_KEY='tlx_sess_v1', FAIL_KEY='tlx_fail_v1', IDLE_MS=30*60*1000, PBKDF2_ITER=150000;
+/* ============ Auth: สองระบบแยกกัน (บัญชี / ข้อมูล / เซสชัน แยกกันสิ้นเชิง) ============ */
+const SYS={
+  ops:{name:'Fleet & Stock',views:['dashboard','telematics','diagnostics','inventory','gps','reports','stock'],home:'dashboard',stores:()=>[MoveStore,JobStore]},
+  work:{name:'Work Intake',views:['work'],home:'work',stores:()=>[Store]}
+};
+const IDLE_MS=30*60*1000, PBKDF2_ITER=150000;
+const K={auth:s=>'tlx_auth_'+s, sess:s=>'tlx_sess_'+s, fail:s=>'tlx_fail_'+s};
+try{ const o=localStorage.getItem('tlx_auth_v1'); if(o&&!localStorage.getItem(K.auth('ops'))) localStorage.setItem(K.auth('ops'),o); localStorage.removeItem('tlx_auth_v1'); }catch(e){}   // ย้ายบัญชีเดิมไปไว้ระบบ Fleet & Stock
 const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
 const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function derive(pw,salt,iter){
@@ -681,42 +797,59 @@ async function derive(pw,salt,iter){
   return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},k,256));
 }
 function sameBytes(a,b){ if(a.length!==b.length) return false; let d=0; for(let i=0;i<a.length;i++) d|=a[i]^b[i]; return d===0; }
-const getAuth=()=>{ try{ return JSON.parse(localStorage.getItem(AUTH_KEY)); }catch(e){ return null; } };
-const getFail=()=>{ try{ return JSON.parse(localStorage.getItem(FAIL_KEY))||{n:0,until:0}; }catch(e){ return {n:0,until:0}; } };
-let lastActive=Date.now(), authBusy=false, unlocked=false, authSetup=false;
+const getAuth=s=>{ try{ return JSON.parse(localStorage.getItem(K.auth(s))); }catch(e){ return null; } };
+const getFail=s=>{ try{ return JSON.parse(localStorage.getItem(K.fail(s)))||{n:0,until:0}; }catch(e){ return {n:0,until:0}; } };
+let curSys=(()=>{ try{ const s=sessionStorage.getItem('tlx_cur'); return SYS[s]?s:'ops'; }catch(e){ return 'ops'; } })();
+let authSys=curSys, lastActive=Date.now(), authBusy=false, unlocked=false, authSetup=false;
 ['mousemove','keydown','click','touchstart'].forEach(ev=>addEventListener(ev,()=>{ lastActive=Date.now(); },{passive:true}));
 
-function readSession(){
-  try{ const s=JSON.parse(sessionStorage.getItem(SESS_KEY)), a=getAuth();
-    if(s&&a&&s.user===a.user&&s.exp>Date.now()) return s; }catch(e){}
+function readSession(s){
+  try{ const x=JSON.parse(sessionStorage.getItem(K.sess(s))), a=getAuth(s); if(x&&a&&x.user===a.user&&x.exp>Date.now()) return x; }catch(e){}
   return null;
 }
-function saveSession(user){ try{ sessionStorage.setItem(SESS_KEY,JSON.stringify({user,exp:Date.now()+IDLE_MS})); }catch(e){} }
+function saveSession(s,user){ try{ sessionStorage.setItem(K.sess(s),JSON.stringify({user,exp:Date.now()+IDLE_MS})); sessionStorage.setItem('tlx_cur',s); }catch(e){} }
 
-function showAuth(msg,fatal){
-  const a=getAuth(); authSetup=!a;
+function wipeData(){
+  work=[]; moves=[]; jobs=[];
+  ['c-wmonth','c-wcat','c-sbal','c-sflow','c-spend'].forEach(id=>{ if(charts[id]){ charts[id].destroy(); delete charts[id]; } });
+  inited.work=false; inited.stock=false;
+  ['#w-body','#j-body','#s-items','#m-body-rows'].forEach(q=>{ const el=$(q); if(el) el.innerHTML=''; });
+}
+function showAuth(msg,fatal,sys){
+  authSys=sys||curSys; const a=getAuth(authSys); authSetup=!a;
   document.body.classList.add('locked');
-  $('#a-title').textContent=authSetup?'Create admin account':'Sign in';
-  $('#a-hint').textContent=authSetup?'First time here: choose a username and a password (min. 8 characters). Stored in this browser only.':'TELEMATIX.PRO · Fleet & Work Intake';
-  $('#a-confirm-wrap').hidden=!authSetup; $('#a-reset').hidden=authSetup;
+  $$('#a-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.sys===authSys));
+  $('#a-title').textContent=(authSetup?'Create account · ':'Sign in · ')+SYS[authSys].name;
+  $('#a-hint').textContent=authSetup?`First time in ${SYS[authSys].name}: choose a username and a password (min. 8 characters). This system has its own account and its own data, separate from the other system.`:`${SYS[authSys].name} — separate login and data.`;
+  $('#a-confirm-wrap').hidden=!authSetup; $('#a-reset').hidden=authSetup; $('#a-reset').textContent=`Forgot password? Reset ${SYS[authSys].name} account (erases only this system's data)`;
   $('#a-pass').autocomplete=authSetup?'new-password':'current-password';
   $('#a-submit').textContent=authSetup?'Create account':'Sign in';
   $('#a-submit').disabled=!!fatal;
-  $('#a-err').textContent=msg||''; $('#a-pass').value=''; $('#a-pass2').value='';
-  if(!fatal) setTimeout(()=>{ (a?$('#a-pass'):$('#a-user')).focus(); if(a) $('#a-user').value=a.user; },30);
+  $('#a-err').textContent=msg||''; $('#a-pass').value=''; $('#a-pass2').value=''; $('#a-user').value=a?a.user:'';
+  if(!fatal) setTimeout(()=>(a?$('#a-pass'):$('#a-user')).focus(),30);
 }
-function unlock(user){
-  unlocked=true; lastActive=Date.now(); saveSession(user);
-  $('#who-name').textContent=user; work=Store.load();
-  document.body.classList.remove('locked'); route(); icons();
+function unlock(sys,user){
+  curSys=sys; unlocked=true; lastActive=Date.now(); saveSession(sys,user);
+  wipeData(); document.body.dataset.sys=sys;
+  if(sys==='ops'){ moves=MoveStore.load(); jobs=JobStore.load(); } else work=Store.load();
+  $('#who-name').textContent=user; $('#sys-name').textContent=SYS[sys].name;
+  $$('#nav [data-sys]').forEach(e=>{ e.hidden=e.dataset.sys!==sys; });
+  document.body.classList.remove('locked');
+  const v=(location.hash||'').slice(1); if(!SYS[sys].views.includes(v)) history.replaceState(null,'','#'+SYS[sys].home);
+  route(); icons();
 }
-function lock(msg){
-  unlocked=false; work=[]; try{ sessionStorage.removeItem(SESS_KEY); }catch(e){}
-  ['c-wmonth','c-wcat'].forEach(id=>{ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }); inited.work=false;
-  const wb=$('#w-body'); if(wb) wb.innerHTML=''; closeM(); showAuth(msg);
+function lock(msg,sys){
+  sys=sys||curSys; unlocked=false; try{ sessionStorage.removeItem(K.sess(sys)); }catch(e){}
+  wipeData(); closeM(); showAuth(msg,false,sys);
 }
+function switchTo(sys){
+  const s=readSession(sys); if(s) return unlock(sys,s.user);
+  unlocked=false; wipeData(); closeM(); showAuth('',false,sys);
+}
+$$('#a-tabs button').forEach(b=>b.addEventListener('click',()=>switchTo(b.dataset.sys)));
+$('#btn-switch').addEventListener('click',()=>switchTo(curSys==='ops'?'work':'ops'));
 $('#f-auth').addEventListener('submit',async e=>{
-  e.preventDefault(); if(authBusy) return; authBusy=true; const err=$('#a-err'); err.textContent='';
+  e.preventDefault(); if(authBusy) return; authBusy=true; const err=$('#a-err'); err.textContent=''; const sys=authSys;
   try{
     const user=$('#a-user').value.trim(), pw=$('#a-pass').value;
     if(authSetup){
@@ -724,35 +857,37 @@ $('#f-auth').addEventListener('submit',async e=>{
       if(pw.length<8) return void(err.textContent='Password must be at least 8 characters.');
       if(pw!==$('#a-pass2').value) return void(err.textContent='Passwords do not match.');
       const salt=crypto.getRandomValues(new Uint8Array(16)), hash=await derive(pw,salt,PBKDF2_ITER);
-      try{ localStorage.setItem(AUTH_KEY,JSON.stringify({user,salt:b64(salt),hash:b64(hash),iter:PBKDF2_ITER})); }
+      try{ localStorage.setItem(K.auth(sys),JSON.stringify({user,salt:b64(salt),hash:b64(hash),iter:PBKDF2_ITER})); }
       catch(x){ return void(err.textContent='Browser storage is blocked — cannot save the account.'); }
-      localStorage.removeItem(FAIL_KEY); unlock(user); return;
+      localStorage.removeItem(K.fail(sys)); unlock(sys,user); return;
     }
-    const f=getFail(), wait=Math.ceil((f.until-Date.now())/1000);
+    const f=getFail(sys), wait=Math.ceil((f.until-Date.now())/1000);
     if(wait>0) return void(err.textContent=`Too many attempts. Try again in ${wait}s.`);
-    const a=getAuth(); if(!a) return showAuth();
+    const a=getAuth(sys); if(!a) return showAuth('',false,sys);
     const h=await derive(pw,unb64(a.salt),a.iter||PBKDF2_ITER);
-    if(user.toLowerCase()===a.user.toLowerCase()&&sameBytes(h,unb64(a.hash))){ localStorage.removeItem(FAIL_KEY); unlock(a.user); }
-    else{ f.n=(f.n||0)+1; if(f.n>=5){ f.until=Date.now()+60000; f.n=0; } try{ localStorage.setItem(FAIL_KEY,JSON.stringify(f)); }catch(x){}
+    if(user.toLowerCase()===a.user.toLowerCase()&&sameBytes(h,unb64(a.hash))){ localStorage.removeItem(K.fail(sys)); unlock(sys,a.user); }
+    else{ f.n=(f.n||0)+1; if(f.n>=5){ f.until=Date.now()+60000; f.n=0; } try{ localStorage.setItem(K.fail(sys),JSON.stringify(f)); }catch(x){}
       err.textContent=f.until>Date.now()?'Too many attempts. Locked for 60 seconds.':'Wrong username or password.'; $('#a-pass').value=''; }
   }finally{ authBusy=false; }
 });
 $('#a-reset').addEventListener('click',()=>{
-  if(!confirm('Reset the account? This ERASES the login and all saved work records in this browser.')) return;
-  localStorage.removeItem(AUTH_KEY); localStorage.removeItem(FAIL_KEY); localStorage.removeItem(Store.key); work=[]; showAuth('Account reset. Create a new one.');
+  const sys=authSys; if(!confirm(`Reset the ${SYS[sys].name} account? This ERASES its login and ALL its saved data in this browser. The other system is not affected.`)) return;
+  localStorage.removeItem(K.auth(sys)); localStorage.removeItem(K.fail(sys)); SYS[sys].stores().forEach(x=>localStorage.removeItem(x.key));
+  try{ sessionStorage.removeItem(K.sess(sys)); }catch(e){} wipeData(); showAuth('Account reset. Create a new one.',false,sys);
 });
-$('#btn-logout').addEventListener('click',()=>lock('Signed out.'));
+$('#btn-logout').addEventListener('click',()=>lock('Signed out.',curSys));
 setInterval(()=>{ if(!unlocked) return;
-  if(Date.now()-lastActive>IDLE_MS) lock('Signed out after 30 minutes of inactivity.'); else { const s=readSession(); if(s) saveSession(s.user); else lock('Session expired.'); } },15000);
+  if(Date.now()-lastActive>IDLE_MS) lock('Signed out after 30 minutes of inactivity.',curSys); else { const s=readSession(curSys); if(s) saveSession(curSys,s.user); else lock('Session expired.',curSys); } },15000);
 function boot(){
   if(!(window.crypto&&crypto.subtle)) return showAuth('This page needs HTTPS (GitHub Pages is fine) or localhost to protect the password.',true);
-  const s=readSession(); s?unlock(s.user):showAuth();
+  const s=readSession(curSys); s?unlock(curSys,s.user):showAuth('',false,curSys);
 }
 
 /* ============ Work Intake ============ */
-const Store={ key:'tlx_work_v1',
-  load(){ try{ const a=JSON.parse(localStorage.getItem(this.key)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } },
-  save(a){ try{ localStorage.setItem(this.key,JSON.stringify(a)); return true; }catch(e){ toast('Cannot save — browser storage is full or blocked.'); return false; } } };
+function makeStore(key){ return { key,
+  load(){ try{ const a=JSON.parse(localStorage.getItem(key)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } },
+  save(a){ try{ localStorage.setItem(key,JSON.stringify(a)); return true; }catch(e){ toast('Cannot save — browser storage is full or blocked.'); return false; } } }; }
+const Store=makeStore('tlx_work_v1'), MoveStore=makeStore('tlx_stock_v1'), JobStore=makeStore('tlx_jobs_v1');
 let work=[];
 const pad2=n=>String(n).padStart(2,'0');
 const money=n=>(n<0?'-':'')+'฿'+Math.abs(Number(n)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -785,7 +920,7 @@ function workStats(){
 }
 function setBar(id,labels,data,colors,extra){
   const c=charts[id]; if(!c) return barChart(id,labels,data,colors,extra);
-  const ds=c.data.datasets[0]; c.data.labels=labels; ds.data=data; ds.base3d=colors; ds.backgroundColor=barFill(colors); c.update();
+  c.options.plugins.bar3d.depth=(extra&&extra.depth)||12; const ds=c.data.datasets[0]; c.data.labels=labels; ds.data=data; ds.base3d=colors; ds.backgroundColor=barFill(colors); c.update();
 }
 function renderWork(){
   const {tot,byM,byC,months}=workStats(), now=new Date(), key=`${now.getFullYear()}-${pad2(now.getMonth()+1)}`, pv=new Date(now.getFullYear(),now.getMonth()-1,1), pkey=`${pv.getFullYear()}-${pad2(pv.getMonth()+1)}`;
@@ -825,57 +960,216 @@ $('#f-rec').addEventListener('submit',e=>{ e.preventDefault();
   const next=work.concat({id:uid(),date,amount,desc:$('#r-desc').value.trim(),cat:$('#r-cat').value.trim()});
   if(Store.save(next)){ work=next; renderWork(); closeM(); e.target.reset(); toast('Record saved'); } });
 
-// นำเข้า Excel / CSV
-const imp={wb:null,headers:[],rows:[]};
-$('#w-import').addEventListener('click',()=>$('#w-file').click());
+// ===== นำเข้า Excel / CSV (ใช้ร่วมกันทุกหน้า) =====
+const fqty=n=>Number(n).toLocaleString('en-US',{maximumFractionDigits:2});
+const todayISO=()=>{ const n=new Date(); return `${n.getFullYear()}-${pad2(n.getMonth()+1)}-${pad2(n.getDate())}`; };
+const nk=s=>String(s).replace(/\s+/g,' ').trim().toLowerCase();
+const clean=(v,n)=>v==null?'':String(v).replace(/\s+/g,' ').trim().slice(0,n);
+let moves=[], jobs=[];
+const RE_ITEM=[/รายการ|ชื่อ|item|part|product|สินค้า|material|วัสดุ|name/i,/รหัส|code|sku/i];
+const IMPORTS={
+  work:{title:'Import work records',
+    fields:[{k:'date',label:'Date column *',kind:'date',req:1,re:[/date|วัน|เวลา/i]},
+            {k:'amt',label:'Amount column *',kind:'num',req:1,re:[/amount|total|ยอด|จำนวนเงิน|เงิน|ราคา|มูลค่า|บาท|revenue|income|รายรับ|price/i]},
+            {k:'desc',label:'Description column',kind:'text',re:[/รายละเอียด|รายการ|desc|detail|item/i,/ชื่อ|งาน|name|job|order|เลขที่|หมายเหตุ/i]},
+            {k:'cat',label:'Category / customer column',kind:'text',re:[/cat|type|ประเภท|หมวด|ลูกค้า|customer|client|แผนก|dept|หน่วยงาน/i]}],
+    make:p=>[{date:p.date,amount:p.amt,desc:p.desc,cat:p.cat}], key:r=>`${r.date}|${r.amount}|${r.desc}|${r.cat}`,
+    cols:[['DATE',r=>r.date,'mono'],['DESCRIPTION',r=>esc(r.desc)],['CATEGORY',r=>esc(r.cat),'dim'],['AMOUNT',r=>money(r.amount),'right mono']],
+    sum:o=>`total ${money(o.reduce((a,r)=>a+r.amount,0))}`,
+    get:()=>work, set:n=>{ if(!Store.save(n)) return false; work=n; renderWork(); return true; }},
+  stock:{title:'Import stock movements',
+    fields:[{k:'date',label:'Date column *',kind:'date',req:1,re:[/date|วัน|เวลา/i]},
+            {k:'item',label:'Item column *',kind:'text',req:1,re:RE_ITEM},
+            {k:'inq',label:'Received (in) column',kind:'num',re:[/รับ|เข้า|(^|[^a-z])in([^a-z]|$)|receive|ซื้อ|เพิ่ม/i]},
+            {k:'outq',label:'Issued (out) column',kind:'num',re:[/จ่าย|ออก|(^|[^a-z])out([^a-z]|$)|issue|ใช้|เบิก|ขาย|ลด/i]},
+            {k:'note',label:'Note column',kind:'text',re:[/หมายเหตุ|note|remark|อ้างอิง|ref|เลขที่/i]}],
+    make:p=>{ const o=[], add=(type,q)=>{ if(q) o.push({date:p.date,item:p.item,type,qty:Math.abs(q),note:p.note}); }; if(p.inq) add(p.inq>0?'in':'out',p.inq); if(p.outq) add('out',p.outq); return o; },
+    key:r=>`${r.date}|${nk(r.item)}|${r.type}|${r.qty}|${r.note}`,
+    cols:[['DATE',r=>r.date,'mono'],['ITEM',r=>esc(r.item)],['TYPE',r=>r.type==='in'?'In':'Out'],['QTY',r=>fqty(r.qty),'right mono'],['NOTE',r=>esc(r.note),'dim']],
+    sum:o=>`${fqty(o.filter(r=>r.type==='in').reduce((a,r)=>a+r.qty,0))} pcs in · ${fqty(o.filter(r=>r.type==='out').reduce((a,r)=>a+r.qty,0))} pcs out`,
+    get:()=>moves, set:n=>{ if(!MoveStore.save(n)) return false; moves=n; renderStock(); return true; }},
+  jobs:{title:'Import incoming jobs',
+    fields:[{k:'item',label:'Item column *',kind:'text',req:1,re:RE_ITEM},
+            {k:'qty',label:'Expected pieces column *',kind:'num',req:1,re:[/จำนวน|qty|quantity|ชิ้น|ตัว|pcs|piece|unit/i]},
+            {k:'due',label:'Due date column',kind:'date',re:[/กำหนด|due|นัด|delivery|ส่ง|eta|วันที่|date/i]},
+            {k:'ref',label:'Job / PO ref column',kind:'text',re:[/เลขที่|ref|po|job|order|ใบงาน|ใบสั่ง|no\.?/i]}],
+    make:p=>p.qty>0?[{item:p.item,qty:p.qty,due:p.due||'',ref:p.ref}]:[], key:r=>`${r.ref}|${nk(r.item)}|${r.qty}|${r.due}`,
+    cols:[['ITEM',r=>esc(r.item)],['REF',r=>esc(r.ref),'dim'],['EXPECTED',r=>fqty(r.qty),'right mono'],['DUE',r=>r.due||'—','mono']],
+    sum:o=>`${o.length} job(s) · ${fqty(o.reduce((a,r)=>a+r.qty,0))} pieces expected`,
+    get:()=>jobs, set:n=>{ if(!JobStore.save(n)) return false; jobs=n; renderStock(); return true; }}
+};
+const imp={wb:null,headers:[],rows:[],target:'work'};
+const impT=()=>IMPORTS[imp.target];
+function pickFile(t){ imp.target=t; $('#w-file').click(); }
+$('#w-import').addEventListener('click',()=>pickFile('work'));
+$('#s-imp-moves').addEventListener('click',()=>pickFile('stock'));
+$('#s-imp-jobs').addEventListener('click',()=>pickFile('jobs'));
 $('#w-file').addEventListener('change',async e=>{
   const f=e.target.files[0]; e.target.value=''; if(!f) return;
   if(f.size>10*1024*1024) return toast('File too large (max 10 MB)'); if(!window.XLSX) return toast('Excel library failed to load — check your connection');
   try{
     imp.wb=/\.csv$/i.test(f.name)?XLSX.read(await f.text(),{type:'string',raw:true}):XLSX.read(await f.arrayBuffer(),{type:'array'});
-    $('#imp-file').textContent=f.name; $('#imp-sheet').innerHTML=imp.wb.SheetNames.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join('');
+    $('#imp-title').textContent=impT().title; $('#imp-file').textContent=f.name; $('#imp-sheet').innerHTML=imp.wb.SheetNames.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join('');
     if(!loadSheet(0)) return; openM('#m-import');
   }catch(err){ console.error(err); toast('Cannot read this file'); }
 });
 $('#imp-sheet').addEventListener('change',e=>loadSheet(+e.target.value));
-['imp-date','imp-amt','imp-desc','imp-cat','imp-dedupe'].forEach(id=>$('#'+id).addEventListener('change',previewImport));
-const GUESS={date:/date|วัน|เวลา/i,amt:/amount|total|price|ยอด|จำนวนเงิน|เงิน|ราคา|มูลค่า|บาท|revenue|income|รายรับ/i,desc:/desc|item|รายการ|ชื่อ|งาน|detail|รายละเอียด|name|job|order|เลขที่|หมายเหตุ/i,cat:/cat|type|ประเภท|หมวด|ลูกค้า|customer|client|แผนก|dept|หน่วยงาน/i};
+$('#imp-dedupe').addEventListener('change',previewImport);
 function loadSheet(i){
   const ws=imp.wb.Sheets[imp.wb.SheetNames[i]], aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
-  if(!aoa.length) { toast('This sheet is empty'); return false; }
+  if(!aoa.length){ toast('This sheet is empty'); return false; }
   let hi=aoa.slice(0,10).findIndex(r=>r.filter(c=>c!=null&&String(c).trim()!=='').length>=2); if(hi<0) hi=0;
   const width=Math.max(...aoa.map(r=>r.length)); imp.headers=Array.from({length:width},(_,j)=>{ const h=aoa[hi][j]; return h==null||String(h).trim()===''?`Column ${j+1}`:String(h).trim(); });
   imp.rows=aoa.slice(hi+1);
-  const opts=(none)=>(none?'<option value="">— none —</option>':'')+imp.headers.map((h,j)=>`<option value="${j}">${esc(h)}</option>`).join('');
-  $('#imp-date').innerHTML=opts(false); $('#imp-amt').innerHTML=opts(false); $('#imp-desc').innerHTML=opts(true); $('#imp-cat').innerHTML=opts(true);
-  const find=re=>imp.headers.findIndex(h=>re.test(h)), ratio=(j,fn)=>{ const s=imp.rows.slice(0,50).map(r=>r[j]).filter(v=>v!=null&&v!==''); return s.length?s.filter(v=>fn(v)!=null).length/s.length:0; };
-  let d=find(GUESS.date); if(d<0){ let best=0; imp.headers.forEach((_,j)=>{ const r=ratio(j,parseDate); if(r>best){best=r;d=j;} }); } if(d<0) d=0;
-  let a=imp.headers.findIndex((h,j)=>j!==d&&GUESS.amt.test(h)); if(a<0){ let best=0; imp.headers.forEach((_,j)=>{ if(j===d) return; const r=ratio(j,v=>typeof v==='number'?v:null); if(r>best){best=r;a=j;} }); } if(a<0) a=Math.min(1,width-1);
-  const ds=(()=>{ for(const re of [/รายละเอียด|รายการ|desc|detail|item/i,GUESS.desc]){ const k=imp.headers.findIndex((h,j)=>j!==d&&j!==a&&re.test(h)); if(k>=0) return k; } return -1; })(), ct=imp.headers.findIndex((h,j)=>j!==d&&j!==a&&j!==ds&&GUESS.cat.test(h));
-  $('#imp-date').value=d; $('#imp-amt').value=a; $('#imp-desc').value=ds<0?'':ds; $('#imp-cat').value=ct<0?'':ct;
+  const T=impT(), opts=none=>(none?'<option value="">— none —</option>':'')+imp.headers.map((h,j)=>`<option value="${j}">${esc(h)}</option>`).join('');
+  $('#imp-fields').innerHTML=T.fields.map(f=>`<div><label class="lbl" for="imp-f-${f.k}">${esc(f.label)}</label><select id="imp-f-${f.k}">${opts(!f.req)}</select></div>`).join('');
+  const used=new Set(), ratio=(j,fn)=>{ const s=imp.rows.slice(0,50).map(r=>r[j]).filter(v=>v!=null&&v!==''); return s.length?s.filter(v=>fn(v)!=null).length/s.length:0; };
+  T.fields.forEach(f=>{
+    let j=-1; for(const re of f.re){ j=imp.headers.findIndex((h,x)=>!used.has(x)&&re.test(h)); if(j>=0) break; }
+    if(j<0&&f.req&&(f.kind==='date'||f.kind==='num')){ let best=0; imp.headers.forEach((_,x)=>{ if(used.has(x)) return; const r=ratio(x,f.kind==='date'?parseDate:v=>typeof v==='number'?v:null); if(r>best){ best=r; j=x; } }); }
+    if(j<0&&f.req){ j=imp.headers.findIndex((_,x)=>!used.has(x)); }
+    if(j>=0) used.add(j); $('#imp-f-'+f.k).value=j<0?'':j;
+  });
+  $$('#imp-fields select').forEach(s=>s.addEventListener('change',previewImport));
   previewImport(); return true;
 }
 function convertRows(){
-  const di=+$('#imp-date').value, ai=+$('#imp-amt').value, si=$('#imp-desc').value, ci=$('#imp-cat').value, out=[]; let bad=0;
-  imp.rows.forEach(r=>{ if(!r.some(c=>c!=null&&String(c).trim()!=='')) return;
-    const date=parseDate(r[di]), amount=parseAmount(r[ai]); if(!date||amount==null){ bad++; return; }
-    out.push({date,amount,desc:si===''?'':String(r[+si]??'').trim().slice(0,200),cat:ci===''?'':String(r[+ci]??'').trim().slice(0,80)}); });
+  const T=impT(), idx=Object.fromEntries(T.fields.map(f=>[f.k,$('#imp-f-'+f.k).value])), out=[]; let bad=0;
+  imp.rows.forEach(r=>{
+    if(!r.some(c=>c!=null&&String(c).trim()!=='')) return;
+    const p={}; let ok=true;
+    T.fields.forEach(f=>{ const raw=idx[f.k]===''?null:r[+idx[f.k]]; const v=f.kind==='date'?parseDate(raw):f.kind==='num'?parseAmount(raw):clean(raw,f.k==='note'||f.k==='desc'?200:80);
+      if(f.req&&(v==null||v==='')) ok=false; p[f.k]=v; });
+    const recs=ok?T.make(p):[]; if(!recs.length) bad++; else out.push(...recs);
+  });
   return {out,bad};
 }
 function previewImport(){
-  const {out,bad}=convertRows(), sum=out.reduce((a,r)=>a+r.amount,0);
-  $('#imp-prev').innerHTML='<thead><tr><th>DATE</th><th>DESCRIPTION</th><th>CATEGORY</th><th class="right">AMOUNT</th></tr></thead><tbody>'+out.slice(0,5).map(r=>`<tr><td class="mono">${r.date}</td><td>${esc(r.desc)}</td><td class="dim">${esc(r.cat)}</td><td class="right mono">${money(r.amount)}</td></tr>`).join('')+'</tbody>';
-  $('#imp-sum').textContent=`${out.length} valid row(s) · ${bad} skipped (invalid date or amount) · total ${money(sum)}`;
+  const T=impT(), {out,bad}=convertRows();
+  $('#imp-prev').innerHTML='<thead><tr>'+T.cols.map(c=>`<th class="${c[2]&&c[2].includes('right')?'right':''}">${c[0]}</th>`).join('')+'</tr></thead><tbody>'+out.slice(0,5).map(r=>'<tr>'+T.cols.map(c=>`<td class="${c[2]||''}">${c[1](r)}</td>`).join('')+'</tr>').join('')+'</tbody>';
+  $('#imp-sum').textContent=`${out.length} valid record(s) · ${bad} row(s) skipped (missing/invalid required value) · ${T.sum(out)}`;
   $('#btn-do-import').disabled=!out.length;
 }
 $('#btn-do-import').addEventListener('click',()=>{
-  const {out}=convertRows(); if(!out.length) return;
-  const replace=$('#imp-mode').value==='replace', base=replace?[]:work, key=r=>`${r.date}|${r.amount}|${r.desc}|${r.cat}`, seen=new Map();
-  if($('#imp-dedupe').checked) base.forEach(r=>seen.set(key(r),(seen.get(key(r))||0)+1));
+  const T=impT(), {out}=convertRows(); if(!out.length) return;
+  const replace=$('#imp-mode').value==='replace', cur=T.get();
+  if(replace&&cur.length&&!confirm(`Replace all ${cur.length} existing record(s) with this file?`)) return;
+  const base=replace?[]:cur, seen=new Map();
+  if($('#imp-dedupe').checked) base.forEach(r=>{ const k=T.key(r); seen.set(k,(seen.get(k)||0)+1); });
   let skipped=0; const add=[];
-  out.forEach(r=>{ const k=key(r), n=seen.get(k)||0; if(n>0){ seen.set(k,n-1); skipped++; } else add.push({id:uid(),...r}); });
-  const next=base.concat(add); if(!Store.save(next)) return;
-  work=next; renderWork(); closeM(); toast(`Imported ${add.length} record(s)`+(skipped?` · ${skipped} duplicate(s) skipped`:''));
+  out.forEach(r=>{ const k=T.key(r), n=seen.get(k)||0; if(n>0){ seen.set(k,n-1); skipped++; } else add.push({id:uid(),...r}); });
+  if(!T.set(base.concat(add))) return; closeM();
+  toast(`Imported ${add.length} record(s)`+(skipped?` · ${skipped} duplicate(s) skipped`:''));
+});
+
+/* ============ Stock & Incoming ============ */
+const addDays=(iso,n)=>{ const [y,m,d]=iso.split('-').map(Number); return new Date(Date.UTC(y,m-1,d+n)).toISOString().slice(0,10); };
+const daysBetween=(a,b)=>Math.round((Date.parse(b)-Date.parse(a))/864e5);
+const dmy=d=>d.slice(8)+'/'+d.slice(5,7);
+const sgn=m=>m.type==='in'?m.qty:-m.qty;
+function recvMap(){ const o={}; moves.forEach(m=>{ if(m.jobId&&m.type==='in') o[m.jobId]=(o[m.jobId]||0)+m.qty; }); return o; }
+function itemList(){ const m=new Map(); moves.concat(jobs).forEach(x=>{ const k=nk(x.item); if(k&&!m.has(k)) m.set(k,x.item); }); return [...m].sort((a,b)=>a[1].localeCompare(b[1],'th')); }
+function stockSeries(sel,range){
+  const list=moves.filter(m=>sel==='ALL'||nk(m.item)===sel); if(!list.length) return null;
+  const ds=list.map(m=>m.date).sort(), first=ds[0], last=ds[ds.length-1];
+  let start=range==='all'?first:addDays(last,-(+range-1));
+  let bal=list.filter(m=>m.date<start).reduce((a,m)=>a+sgn(m),0);
+  const by={}; list.filter(m=>m.date>=start).forEach(m=>{ const o=by[m.date]||(by[m.date]={in:0,out:0}); o[m.type]+=m.qty; });
+  const L=[],B=[],I=[],O=[];
+  const gap=range==='all'&&daysBetween(first,last)>119;   // ช่วงห่างมาก: แสดงเฉพาะวันที่มีการเคลื่อนไหว
+  const days=gap?Object.keys(by).sort().slice(-120):null;
+  bal=gap?list.filter(m=>m.date<days[0]).reduce((a,m)=>a+sgn(m),0):bal; if(gap) start=days[0];
+  const walk=gap?days:(function*(){ for(let d=start;d<=last;d=addDays(d,1)) yield d; })();
+  for(const d of walk){ const o=by[d]||{in:0,out:0}; bal+=o.in-o.out; L.push(dmy(d)); B.push(Math.round(bal*100)/100); I.push(o.in); O.push(o.out); }
+  return {L,B,I,O,start,last};
+}
+function setFlow(L,I,O){
+  const c=charts['c-sflow'];
+  if(c){ c.data.labels=L; c.data.datasets[0].data=I; c.data.datasets[1].data=O; return c.update(); }
+  const ds=(label,data,col)=>({label,data,borderColor:col,borderWidth:3,tension:.35,pointRadius:L.length>40?0:3,pointBackgroundColor:'#fff',pointBorderColor:col,fill:false});
+  make('c-sflow',{type:'line',data:{labels:L,datasets:[ds('Received (in)',I,C.green),ds('Issued (out)',O,C.rose)]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8,boxHeight:8}}},scales:{y:axes.y,x:axes.x}},plugins:[lineGlow]});
+}
+function renderStock(){
+  const rm=recvMap(), items=itemList(), today=todayISO();
+  const selEl=$('#s-item'), cur=selEl.value||'ALL';
+  selEl.innerHTML='<option value="ALL">All items</option>'+items.map(([k,n])=>`<option value="${esc(k)}">${esc(n)}</option>`).join(''); selEl.value=items.some(i=>i[0]===cur)?cur:'ALL';
+  $('#dl-items').innerHTML=items.map(([k,n])=>`<option value="${esc(n)}">`).join('');
+  const sel=selEl.value, inSel=x=>sel==='ALL'||nk(x.item)===sel, selName=sel==='ALL'?'all items':(items.find(i=>i[0]===sel)||[0,''])[1];
+  // KPI
+  const bal=moves.filter(inSel).reduce((a,m)=>a+sgn(m),0), mk=today.slice(0,7);
+  const rows=jobs.filter(inSel).map(j=>{ const rec=rm[j.id]||0, rem=Math.max(0,j.qty-rec); return {j,rec,rem,st:rem<=0?'done':rec>0?'partial':'pending'}; });
+  const open=rows.filter(r=>r.st!=='done'), over=open.filter(r=>r.j.due&&r.j.due<today).length;
+  $('#s-onhand').textContent=fqty(bal); $('#s-onhand').style.color=bal<0?'var(--rose)':''; $('#s-onhand-sub').textContent=`pcs · ${selName}`;
+  $('#s-jobs').textContent=open.length; $('#s-jobs-sub').textContent=over?`${over} overdue`:(open.length?'none overdue':'all arrived'); $('#s-jobs-sub').style.color=over?'var(--rose)':'var(--mute)';
+  $('#s-pcs').textContent=fqty(open.reduce((a,r)=>a+r.rem,0));
+  $('#s-recv').textContent=fqty(moves.filter(m=>inSel(m)&&m.type==='in'&&m.date.startsWith(mk)).reduce((a,m)=>a+m.qty,0));
+  // jobs table
+  const f=$('#j-f').value, q=$('#j-q').value.trim().toLowerCase();
+  const shown=rows.filter(r=>(f==='all'||(f==='done')===(r.st==='done'))&&(!q||(r.j.item+' '+r.j.ref).toLowerCase().includes(q)))
+    .sort((a,b)=>(a.st==='done')-(b.st==='done')||(a.j.due||'9999').localeCompare(b.j.due||'9999')||a.j.item.localeCompare(b.j.item,'th'));
+  $('#j-body').innerHTML=shown.slice(0,300).map(r=>{ const j=r.j, od=r.st!=='done'&&j.due&&j.due<today;
+    const badge=r.st==='done'?'<span class="badge b-ok">Arrived</span>':r.st==='partial'?'<span class="badge b-warn">Partial</span>':od?'<span class="badge b-bad">Overdue</span>':'<span class="badge b-wait">Waiting</span>';
+    return `<tr><td><input type="checkbox" class="chk" data-jrecv="${esc(j.id)}" ${r.st==='done'?'checked':''} aria-label="Mark ${esc(j.item)} as arrived"></td><td style="font-weight:600">${esc(j.item)}</td><td class="dim">${esc(j.ref)||'—'}</td>
+      <td class="right mono">${fqty(j.qty)}</td><td class="right mono pos">${fqty(r.rec)}</td><td class="right mono ${r.rem>0?'':'dim'}">${fqty(r.rem)}</td><td class="mono ${od?'neg':''}">${j.due||'—'}</td><td>${badge}</td>
+      <td class="right"><div class="act">${r.rec>0?`<button class="sm-btn" data-jundo="${esc(j.id)}">Undo</button>`:''}<button class="sm-btn" data-jdel="${esc(j.id)}" aria-label="Delete job">Delete</button></div></td></tr>`; }).join('')
+    ||`<tr><td colspan="9" class="empty">${jobs.length?'No jobs match this filter.':'No incoming jobs yet — import your job list or click “Add job”.'}</td></tr>`;
+  $('#j-count').textContent=`${shown.length} shown`;
+  // stock by item
+  const jr=jobs.map(j=>({j,rem:Math.max(0,j.qty-(rm[j.id]||0))}));
+  const tot=items.map(([k,n])=>{ const ms=moves.filter(m=>nk(m.item)===k), i=ms.filter(m=>m.type==='in').reduce((a,m)=>a+m.qty,0), o=ms.filter(m=>m.type==='out').reduce((a,m)=>a+m.qty,0), p=jr.filter(x=>nk(x.j.item)===k).reduce((a,x)=>a+x.rem,0); return {n,i,o,b:i-o,p}; });
+  $('#s-items').innerHTML=tot.map(t=>`<tr><td style="font-weight:600">${esc(t.n)}</td><td class="right mono pos">${fqty(t.i)}</td><td class="right mono neg">${fqty(t.o)}</td><td class="right mono ${t.b<0?'neg':''}" style="font-weight:700">${fqty(t.b)}</td><td class="right mono">${t.p?fqty(t.p):'—'}</td></tr>`).join('')||'<tr><td colspan="5" class="empty">No stock data yet.</td></tr>';
+  // movements
+  const mv=moves.filter(inSel).map((m,i)=>({m,i})).sort((a,b)=>b.m.date.localeCompare(a.m.date)||b.i-a.i).slice(0,15);
+  $('#m-body-rows').innerHTML=mv.map(({m})=>`<tr><td class="mono">${m.date}</td><td>${esc(m.item)}</td><td><span class="badge ${m.type==='in'?'b-ok':'b-bad'}">${m.type==='in'?'Received':'Issued'}</span></td><td class="right mono">${fqty(m.qty)}</td><td class="dim">${esc(m.note)}</td><td class="right"><button class="sm-btn" data-mdel="${esc(m.id)}" aria-label="Delete movement">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No movements yet — import your stock Excel or click “Add movement”.</td></tr>';
+  if(!inited.stock) return;
+  // charts
+  const s=stockSeries(sel,$('#s-range').value);
+  if(s){ setBar('c-sbal',s.L,s.B,s.B.map(v=>v<0?C.rose:C.cyan),{depth:s.L.length>45?5:s.L.length>20?8:12}); setFlow(s.L,s.I,s.O); $('#s-bal-sub').textContent=`pcs at end of each day · ${s.start} → ${s.last} · ${selName}`; }
+  else { setBar('c-sbal',[],[],[]); setFlow([],[],[]); $('#s-bal-sub').textContent='no stock movements yet'; }
+  const pend=tot.filter(t=>t.p>0).sort((a,b)=>b.p-a.p).slice(0,6), pal=[C.amber,C.cyan,C.violet,C.green,C.blue,C.rose];
+  setBar('c-spend',pend.map(t=>t.n.length>14?t.n.slice(0,13)+'…':t.n),pend.map(t=>t.p),pend.map((_,i)=>pal[i]));
+}
+init.stock=()=>renderStock();
+$('#s-item').addEventListener('change',renderStock); $('#s-range').addEventListener('change',renderStock); $('#j-f').addEventListener('change',renderStock); $('#j-q').addEventListener('input',renderStock);
+
+// กดถูก = งานมาถึงแล้ว → ถามจำนวนชิ้น → เข้าสต๊อกอัตโนมัติ
+let recvJob=null;
+document.addEventListener('click',e=>{
+  const c=e.target.closest('[data-jrecv]');
+  if(c){ e.preventDefault(); const j=jobs.find(x=>x.id===c.dataset.jrecv); if(!j) return; const rec=recvMap()[j.id]||0;
+    if(rec>=j.qty) return undoLast(j);
+    recvJob=j; $('#recv-info').innerHTML=`<div style="font-weight:700">${esc(j.item)}</div><div class="dim mono">${esc(j.ref)||'no ref'} · expected ${fqty(j.qty)} · already received ${fqty(rec)} · remaining ${fqty(j.qty-rec)}</div>`;
+    $('#recv-qty').value=j.qty-rec; $('#recv-date').value=todayISO(); return openM('#m-recv'); }
+  const u=e.target.closest('[data-jundo]'); if(u){ const j=jobs.find(x=>x.id===u.dataset.jundo); if(j) undoLast(j); return; }
+  const d=e.target.closest('[data-jdel]'); if(d){ if(!confirm('Delete this job? Stock already received stays in the ledger.')) return; const n=jobs.filter(x=>x.id!==d.dataset.jdel); if(JobStore.save(n)){ jobs=n; renderStock(); toast('Job deleted'); } return; }
+  const m=e.target.closest('[data-mdel]'); if(m){ if(!confirm('Delete this movement? Stock and any linked job will be recalculated.')) return; const n=moves.filter(x=>x.id!==m.dataset.mdel); if(MoveStore.save(n)){ moves=n; renderStock(); toast('Movement deleted'); } }
+});
+function undoLast(j){
+  const mine=moves.filter(m=>m.jobId===j.id); if(!mine.length) return;
+  if(!confirm('Undo the last receipt for this job? The pieces will be removed from stock.')) return;
+  const last=mine[mine.length-1], n=moves.filter(m=>m.id!==last.id); if(MoveStore.save(n)){ moves=n; renderStock(); toast('Receipt undone'); }
+}
+$('#f-recv').addEventListener('submit',e=>{ e.preventDefault(); const j=recvJob; if(!j) return;
+  const q=parseAmount($('#recv-qty').value), d=parseDate($('#recv-date').value); if(!(q>0)||!d) return toast('Enter a valid quantity and date');
+  const n=moves.concat({id:uid(),date:d,item:j.item,type:'in',qty:q,note:'Received'+(j.ref?' · '+j.ref:''),jobId:j.id});
+  if(MoveStore.save(n)){ moves=n; recvJob=null; renderStock(); closeM(); toast(`Received ${fqty(q)} pcs · ${j.item}`); } });
+$('#s-add-mov').addEventListener('click',()=>{ $('#mv-date').value=todayISO(); openM('#m-mov'); });
+$('#f-mov').addEventListener('submit',e=>{ e.preventDefault();
+  const item=clean($('#mv-item').value,80), q=parseAmount($('#mv-qty').value), d=parseDate($('#mv-date').value); if(!item||!(q>0)||!d) return toast('Enter item, date and a quantity above 0');
+  const n=moves.concat({id:uid(),date:d,item,type:$('#mv-type').value,qty:q,note:clean($('#mv-note').value,120)});
+  if(MoveStore.save(n)){ moves=n; renderStock(); closeM(); e.target.reset(); toast('Movement saved'); } });
+$('#s-add-job').addEventListener('click',()=>{ $('#jb-due').value=''; openM('#m-job'); });
+$('#f-job').addEventListener('submit',e=>{ e.preventDefault();
+  const item=clean($('#jb-item').value,80), q=parseAmount($('#jb-qty').value); if(!item||!(q>0)) return toast('Enter item and expected pieces above 0');
+  const n=jobs.concat({id:uid(),item,ref:clean($('#jb-ref').value,60),qty:q,due:parseDate($('#jb-due').value)||''});
+  if(JobStore.save(n)){ jobs=n; renderStock(); closeM(); e.target.reset(); toast('Job added'); } });
+$('#s-export').addEventListener('click',()=>{
+  if(!window.XLSX) return toast('Excel library failed to load'); if(!moves.length&&!jobs.length) return toast('Nothing to export');
+  const rm=recvMap(), wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(moves.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(m=>({Date:m.date,Item:m.item,In:m.type==='in'?m.qty:'',Out:m.type==='out'?m.qty:'',Note:m.note}))),'Movements');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(jobs.map(j=>{ const r=rm[j.id]||0; return {Item:j.item,Ref:j.ref,Expected:j.qty,Received:r,Remaining:Math.max(0,j.qty-r),Due:j.due,Status:r>=j.qty?'Arrived':r>0?'Partial':'Waiting'}; })),'Jobs');
+  XLSX.writeFile(wb,'stock-and-jobs.xlsx');
 });
 
 /* ============ เริ่มทำงาน ============ */
