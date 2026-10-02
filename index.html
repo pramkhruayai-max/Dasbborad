@@ -7,6 +7,7 @@
 <!-- ตรึงเวอร์ชันไลบรารี + ใช้ jsdelivr ทั้งหมด (unpkg @latest เคยทำให้สคริปต์พังทั้งหน้า) -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -131,6 +132,22 @@ tbody tr{transition:.15s}tbody tr:hover{background:rgba(56,189,248,.06)}
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.two,.eq{grid-template-columns:1fr}}
 @media(max-width:860px){.side{width:64px}.brand div:last-child,.nav small,.nav a span,.node{display:none}.nav a{justify-content:center}.who{display:none}header h2{font-size:15px}.live{display:none}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+[hidden]{display:none!important}
+body.locked .side,body.locked .col{display:none}
+.auth{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+body.locked .auth{display:flex}
+.auth .sheet{max-width:420px}
+.err{color:var(--rose);font-size:13px;min-height:18px}
+.link{background:none;border:0;color:var(--mute);font:13px 'Sarabun';cursor:pointer;text-decoration:underline;text-align:left}
+.link:hover{color:var(--ink)}
+.kpis.four{grid-template-columns:repeat(4,1fr)}
+.right{text-align:right}.pos{color:var(--green)}.neg{color:var(--rose)}
+.sheet.w{max-width:860px}.sheet.w .sb,.sheet .sb.scroll{max-height:68vh;overflow:auto}
+.f3{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pv{font-size:12px}.pv th,.pv td{padding:6px 10px}
+.act{display:flex;gap:10px;flex-wrap:wrap}
+.grid>*{min-width:0}
+@media(max-width:1100px){.kpis.four{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -139,6 +156,21 @@ tbody tr{transition:.15s}tbody tr:hover{background:rgba(56,189,248,.06)}
   <canvas id="bgfx"></canvas>
   <!-- วางไฟล์วีดีโอชื่อ bg.mp4 ไว้โฟลเดอร์เดียวกับ index.html (ถ้าไม่มี จะใช้แอนิเมชันกริดถนนแทนอัตโนมัติ) -->
   <video id="bgvid" autoplay muted loop playsinline preload="auto"></video>
+</div>
+
+<div class="auth" id="auth">
+  <form class="sheet" id="f-auth" novalidate>
+    <div class="sh"><span id="a-title">Sign in</span></div>
+    <div class="sb">
+      <div class="dim" id="a-hint"></div>
+      <div><label class="lbl" for="a-user">Username</label><input id="a-user" autocomplete="username" maxlength="30" required></div>
+      <div><label class="lbl" for="a-pass">Password</label><input id="a-pass" type="password" autocomplete="current-password" required></div>
+      <div id="a-confirm-wrap" hidden><label class="lbl" for="a-pass2">Confirm password</label><input id="a-pass2" type="password" autocomplete="new-password"></div>
+      <div class="err" id="a-err" role="alert"></div>
+      <button class="btn" id="a-submit" type="submit" style="justify-content:center">Sign in</button>
+      <button class="link" type="button" id="a-reset" hidden>Forgot password? Reset account (erases all saved work data)</button>
+    </div>
+  </form>
 </div>
 
 <aside class="side">
@@ -156,6 +188,7 @@ tbody tr{transition:.15s}tbody tr:hover{background:rgba(56,189,248,.06)}
       <small>MANAGEMENT</small>
       <a href="#gps" data-view="gps"><i data-lucide="navigation"></i><span>GPS &amp; Geofence</span></a>
       <a href="#reports" data-view="reports"><i data-lucide="file-bar-chart"></i><span>Fleet Reports</span></a>
+      <a href="#work" data-view="work"><i data-lucide="wallet"></i><span>Work Intake</span></a>
     </nav>
   </div>
   <div class="node">
@@ -173,8 +206,9 @@ tbody tr{transition:.15s}tbody tr:hover{background:rgba(56,189,248,.06)}
     </div>
     <div class="hr">
       <button class="btn" id="btn-add"><i data-lucide="plus"></i>Register Vehicle</button>
-      <div class="ava">FD</div>
-      <div class="who">Fleet Director<br><span>Nissan Motor Asia</span></div>
+      <div class="ava"><i data-lucide="user" style="width:16px;height:16px"></i></div>
+      <div class="who"><span id="who-name" style="color:var(--ink);font-size:12px">Fleet Director</span><br><span>Nissan Motor Asia</span></div>
+      <button class="btn ghost" id="btn-logout" aria-label="Sign out"><i data-lucide="log-out"></i></button>
     </div>
   </header>
 
@@ -183,7 +217,7 @@ tbody tr{transition:.15s}tbody tr:hover{background:rgba(56,189,248,.06)}
     <!-- ===== DASHBOARD ===== -->
     <section class="view" data-view="dashboard">
       <div class="grid kpis">
-        <div class="card kpi tilt" style="--c:#38bdf8"><div><p>ACTIVE VEHICLES</p><div class="num" id="kpi-active">142</div><em style="color:var(--green)">96.8% Fleet Online</em></div><div class="ico"><i data-lucide="car"></i></div></div>
+        <div class="card kpi tilt" style="--c:#38bdf8"><div><p>ACTIVE VEHICLES</p><div class="num" id="kpi-active">0</div><em id="kpi-online" style="color:var(--green)">—</em></div><div class="ico"><i data-lucide="car"></i></div></div>
         <div class="card kpi tilt" style="--c:#34d399"><div><p>AVG FUEL ECONOMY</p><div class="num">11.4 <small>km/L</small></div><em style="color:var(--green)">+0.8 km/L vs Target</em></div><div class="ico"><i data-lucide="fuel"></i></div></div>
         <div class="card kpi tilt" style="--c:#fbbf24"><div><p>DTC ALERTS</p><div class="num" id="kpi-alerts" style="color:var(--amber)">3</div><em style="color:var(--amber)">Requires Attention</em></div><div class="ico"><i data-lucide="alert-triangle"></i></div></div>
         <div class="card kpi tilt" style="--c:#94a3b8"><div><p>CRITICAL SPARE STOCK</p><div class="num">88%</div><em style="color:var(--mute)">OBD-II Sensor Replacements</em></div><div class="ico"><i data-lucide="package-check"></i></div></div>
@@ -264,6 +298,41 @@ tbody tr{transition:.15s}tbody tr:hover{background:rgba(56,189,248,.06)}
       </div>
     </section>
 
+    <!-- ===== WORK INTAKE ===== -->
+    <section class="view" data-view="work">
+      <div class="grid kpis four">
+        <div class="card kpi tilt" style="--c:#34d399"><div><p>TOTAL INCOMING</p><div class="num" id="w-total">฿0.00</div><em id="w-total-sub" style="color:var(--mute)">0 records</em></div><div class="ico"><i data-lucide="wallet"></i></div></div>
+        <div class="card kpi tilt" style="--c:#38bdf8"><div><p>THIS MONTH</p><div class="num" id="w-month">฿0.00</div><em id="w-month-sub" style="color:var(--mute)">—</em></div><div class="ico"><i data-lucide="calendar-days"></i></div></div>
+        <div class="card kpi tilt" style="--c:#a78bfa"><div><p>MONTHLY AVERAGE</p><div class="num" id="w-avg">฿0.00</div><em id="w-avg-sub" style="color:var(--mute)">—</em></div><div class="ico"><i data-lucide="trending-up"></i></div></div>
+        <div class="card kpi tilt" style="--c:#fbbf24"><div><p>LATEST ENTRY</p><div class="num" id="w-last" style="font-size:22px">—</div><em id="w-last-sub" style="color:var(--mute)">&nbsp;</em></div><div class="ico"><i data-lucide="clock"></i></div></div>
+      </div>
+      <div class="grid eq">
+        <div class="card tilt"><h3>Incoming by Month</h3><div class="sub">THB · last 12 months with data</div><div class="chart"><canvas id="c-wmonth"></canvas></div></div>
+        <div class="card tilt"><h3>Top Categories</h3><div class="sub">THB · by total amount</div><div class="chart"><canvas id="c-wcat"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="tools">
+          <div style="display:flex;gap:12px;align-items:baseline"><h3>Work Records</h3><span class="dim mono" id="w-count"></span></div>
+          <div class="act">
+            <input id="w-q" placeholder="Search description / category" style="width:230px" aria-label="Search records">
+            <select id="w-m" aria-label="Month filter"><option value="ALL">All months</option></select>
+          </div>
+        </div>
+        <div class="act" style="margin-bottom:14px">
+          <button class="btn" id="w-import"><i data-lucide="upload"></i>Import Excel / CSV</button>
+          <button class="btn ghost" id="w-add"><i data-lucide="plus"></i>Add Record</button>
+          <button class="btn ghost" id="w-export"><i data-lucide="download"></i>Export Excel</button>
+          <button class="btn ghost" id="w-clear"><i data-lucide="trash-2"></i>Clear All</button>
+          <input type="file" id="w-file" accept=".xlsx,.xls,.xlsm,.csv" hidden>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>DATE</th><th>DESCRIPTION</th><th>CATEGORY</th><th class="right">AMOUNT (THB)</th><th></th></tr></thead>
+          <tbody id="w-body"></tbody>
+        </table></div>
+        <div class="dim" id="w-note" style="margin-top:10px"></div>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -291,6 +360,44 @@ tbody tr{transition:.15s}tbody tr:hover{background:rgba(56,189,248,.06)}
         <div><label class="lbl" for="n-speed">Current Speed (km/h)</label><input id="n-speed" type="number" min="0" max="320" value="95"></div>
       </div>
       <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:6px"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn">Register Vehicle</button></div>
+    </form>
+  </div>
+</div>
+<!-- Modal: import -->
+<div class="modal" id="m-import" role="dialog" aria-modal="true">
+  <div class="sheet w">
+    <div class="sh"><span>Import from Excel / CSV</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
+    <div class="sb scroll">
+      <div class="dim mono" id="imp-file"></div>
+      <div class="f3">
+        <div><label class="lbl" for="imp-sheet">Sheet</label><select id="imp-sheet"></select></div>
+        <div><label class="lbl" for="imp-mode">Import mode</label><select id="imp-mode"><option value="append">Add to existing data</option><option value="replace">Replace all existing data</option></select></div>
+      </div>
+      <div class="f3">
+        <div><label class="lbl" for="imp-date">Date column *</label><select id="imp-date"></select></div>
+        <div><label class="lbl" for="imp-amt">Amount column *</label><select id="imp-amt"></select></div>
+        <div><label class="lbl" for="imp-desc">Description column</label><select id="imp-desc"></select></div>
+        <div><label class="lbl" for="imp-cat">Category / customer column</label><select id="imp-cat"></select></div>
+      </div>
+      <label class="dim" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="imp-dedupe" checked style="width:auto">Skip rows already in the system (safe to re-import the same file)</label>
+      <div class="box"><h4>PREVIEW (first 5 valid rows)</h4><div class="tw"><table class="pv" id="imp-prev"></table></div><div class="dim" id="imp-sum" style="margin-top:8px"></div></div>
+    </div>
+    <div class="sf"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="btn-do-import">Import</button></div>
+  </div>
+</div>
+
+<!-- Modal: add record -->
+<div class="modal" id="m-rec" role="dialog" aria-modal="true">
+  <div class="sheet s">
+    <div class="sh"><span>Add Work Record</span><button data-close aria-label="Close"><i data-lucide="x"></i></button></div>
+    <form id="f-rec" class="sb">
+      <div class="f2">
+        <div><label class="lbl" for="r-date">Date</label><input id="r-date" type="date" required></div>
+        <div><label class="lbl" for="r-amt">Amount (THB)</label><input id="r-amt" type="number" step="0.01" required></div>
+      </div>
+      <div><label class="lbl" for="r-desc">Description</label><input id="r-desc" maxlength="200"></div>
+      <div><label class="lbl" for="r-cat">Category / customer</label><input id="r-cat" maxlength="80"></div>
+      <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:6px"><button type="button" class="btn ghost" data-close>Cancel</button><button type="submit" class="btn">Save</button></div>
     </form>
   </div>
 </div>
@@ -329,10 +436,11 @@ const stCol = {ok:C.green,warn:C.amber,bad:C.rose};
 let selectedId = null;
 
 /* ============ Router (แก้บั๊กหลัก: เมนูเดิมแค่เปลี่ยนสี ไม่มีหน้าให้สลับ) ============ */
-const VIEWS = {dashboard:'Executive Telematics Dashboard',telematics:'Fleet Telematics',diagnostics:'OBD-II Diagnostics',inventory:'Parts & Spare Stock',gps:'GPS & Geofence',reports:'Fleet Reports'};
+const VIEWS = {dashboard:'Executive Telematics Dashboard',telematics:'Fleet Telematics',diagnostics:'OBD-II Diagnostics',inventory:'Parts & Spare Stock',gps:'GPS & Geofence',reports:'Fleet Reports',work:'Work Intake'};
 const inited = {};
 const charts = {};
 function route(){
+  if(document.body.classList.contains('locked')) return;
   let v=(location.hash||'#dashboard').slice(1); if(!VIEWS[v]) v='dashboard';
   $$('.view').forEach(e=>e.classList.toggle('active',e.dataset.view===v));
   $$('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.view===v));
@@ -353,7 +461,7 @@ const bar3d = {id:'bar3d', afterDatasetsDraw(chart){
   chart.data.datasets.forEach((ds,i)=>{
     const meta=chart.getDatasetMeta(i); if(meta.type!=='bar'||!meta.visible||!ds.base3d) return;
     meta.data.forEach((b,j)=>{
-      const col=Array.isArray(ds.base3d)?ds.base3d[j]:ds.base3d; if(!col||!isFinite(b.y)) return;
+      const col=Array.isArray(ds.base3d)?ds.base3d[j]:ds.base3d; if(!col||!isFinite(b.y)||Math.abs(b.base-b.y)<1) return;
       const w=b.width,l=b.x-w/2,r=b.x+w/2,t=Math.min(b.y,b.base),bt=Math.max(b.y,b.base),d=depth;
       ctx.save();
       ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=14;ctx.shadowOffsetX=6;ctx.shadowOffsetY=6;
@@ -370,17 +478,17 @@ function barFill(colors){ return c=>{ const e=c.element,col=Array.isArray(colors
 
 // เส้นกราฟเรืองแสง + เงาลอย
 const lineGlow = {id:'lineGlow',
-  beforeDatasetDraw(chart,a){ if(a.meta.type!=='line')return; const c=chart.ctx;c.save();c.shadowColor=chart.data.datasets[a.index].borderColor;c.shadowBlur=18;c.shadowOffsetY=12; },
+  beforeDatasetDraw(chart,a){ if(a.meta.type!=='line')return; const c=chart.ctx;c.save();c.shadowColor=chart.data.datasets[a.index].borderColor;c.shadowBlur=12;c.shadowOffsetY=8; },
   afterDatasetDraw(chart,a){ if(a.meta.type==='line') chart.ctx.restore(); }};
 
 // โดนัทนูน: เอียงเป็นวงรี + อัดชั้นความหนา
 const donut3d = {id:'donut3d',
-  beforeDatasetsDraw(chart){ const m=chart.getDatasetMeta(0); if(!m.data.length)return; const ctx=chart.ctx,k=.6,cx=m.data[0].x,cy=m.data[0].y,cols=chart.data.datasets[0].backgroundColor,depth=26;
+  beforeDatasetsDraw(chart){ const m=chart.getDatasetMeta(0); chart._d3=false; if(!m.data.length)return; chart._d3=true; const ctx=chart.ctx,k=.6,cx=m.data[0].x,cy=m.data[0].y,cols=chart.data.datasets[0].backgroundColor,depth=26;
     ctx.save(); ctx.translate(cx,cy); ctx.scale(1,k); ctx.translate(-cx,-cy);
     for(let z=depth;z>=1;z--){ if(z===depth){ctx.shadowColor='rgba(0,0,0,.7)';ctx.shadowBlur=26;ctx.shadowOffsetY=10;} else {ctx.shadowColor='transparent';}
       m.data.forEach((e,j)=>{ ctx.fillStyle=shade(cols[j],-.5+(1-z/depth)*.15); ctx.beginPath(); ctx.arc(e.x,e.y+z,e.outerRadius,e.startAngle,e.endAngle); ctx.arc(e.x,e.y+z,e.innerRadius,e.endAngle,e.startAngle,true); ctx.closePath(); ctx.fill(); }); }
   },
-  afterDatasetsDraw(chart){ chart.ctx.restore(); const m=chart.getDatasetMeta(0); if(!m.data.length)return; const ctx=chart.ctx,t=chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+  afterDatasetsDraw(chart){ if(!chart._d3)return; chart.ctx.restore(); const m=chart.getDatasetMeta(0); if(!m.data.length)return; const ctx=chart.ctx,t=chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
     ctx.save();ctx.textAlign='center';ctx.fillStyle='#e6edf7';ctx.font="700 24px 'Chakra Petch'";ctx.fillText(t,m.data[0].x,m.data[0].y+2);ctx.fillStyle='#8a99b2';ctx.font="11px 'Sarabun'";ctx.fillText('UNITS',m.data[0].x,m.data[0].y+18);ctx.restore(); }};
 
 const axes = {
@@ -390,7 +498,7 @@ const axes = {
 function make(id,cfg){ const el=document.getElementById(id); if(!el) return null; if(charts[id]) charts[id].destroy(); return charts[id]=new Chart(el.getContext('2d'),cfg); }
 function barChart(id,labels,data,colors,extra={}){
   return make(id,{type:'bar',data:{labels,datasets:[{data,base3d:colors,backgroundColor:barFill(colors),borderWidth:0,barPercentage:.55,categoryPercentage:.8,...(extra.ds||{})}]},
-    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20,right:22}},plugins:{legend:{display:false},bar3d:{depth:12}},scales:{y:{...axes.y,...(extra.y||{})},x:axes.x}},plugins:[bar3d]});
+    options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:20,right:22}},plugins:{legend:{display:false},bar3d:{depth:12},tooltip:extra.tip||{}},scales:{y:{...axes.y,...(extra.y||{})},x:axes.x}},plugins:[bar3d]});
 }
 function legend(id,items){ $(id).innerHTML=items.map(i=>`<div><span><i style="background:${i.c}"></i>${esc(i.l)}</span><b class="mono">${i.v}</b></div>`).join(''); }
 function donutChart(id,lg,labels,data,colors){
@@ -415,6 +523,8 @@ function renderTable(){
 $('#q').addEventListener('input',renderTable); $('#st').addEventListener('change',renderTable);
 
 const health = () => [fleetData.filter(v=>v.status==='Operational').length,fleetData.filter(v=>v.status==='Warning').length,fleetData.filter(v=>v.status==='Maintenance').length];
+function refreshHealth(){ donutChart('c-health','#lg-health',['Operational','DTC Warning','Maintenance Req.'],health(),[C.green,C.amber,C.rose]); }
+function refreshKpis(){ const on=fleetData.filter(v=>v.status!=='Maintenance').length; $('#kpi-active').textContent=on; $('#kpi-online').textContent=fleetData.length?Math.round(on/fleetData.length*100)+'% Fleet Online':'—'; $('#kpi-alerts').textContent=fleetData.filter(v=>!v.dtc.startsWith('P0000')).length; }
 const init = {};
 init.dashboard = () => {
   renderTable();
@@ -422,9 +532,8 @@ init.dashboard = () => {
     {label:'Speed (km/h)',data:[85,92,110,118,105,125,118],borderColor:C.cyan,borderWidth:3,tension:.4,fill:true,pointRadius:4,pointBackgroundColor:'#fff',pointBorderColor:C.cyan,
       backgroundColor:c=>{const a=c.chart.chartArea;if(!a)return'transparent';const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,'rgba(56,189,248,.35)');g.addColorStop(1,'rgba(56,189,248,0)');return g;}},
     {label:'Engine RPM (/100)',data:[25,28,38,42,32,48,41],borderColor:C.violet,borderWidth:3,tension:.4,borderDash:[6,5],pointRadius:3,pointBackgroundColor:'#fff',pointBorderColor:C.violet}]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8}}},scales:{y:axes.y,x:axes.x}},plugins:[lineGlow]});
-  const h=health();
-  donutChart('c-health','#lg-health',['Operational','DTC Warning','Maintenance Req.'],[135,4,3],[C.green,C.amber,C.rose]);
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'top',labels:{usePointStyle:true,boxWidth:8,boxHeight:8}}},scales:{y:axes.y,x:axes.x}},plugins:[lineGlow]});
+  refreshHealth(); refreshKpis();
 };
 setInterval(()=>{ const c=charts['c-live']; if(!c) return;
   c.data.datasets[0].data.shift();c.data.datasets[0].data.push(Math.floor(100+Math.random()*25));
@@ -465,9 +574,10 @@ document.addEventListener('click',e=>{ const b=e.target.closest('[data-reorder]'
 
 /* ============ GPS / Geofence ============ */
 let gpsDots=[], gpsRAF=0;
+function syncGps(){ gpsDots=fleetData.map(v=>({id:v.id,a:Math.random()*6.28,r:.2+Math.random()*.9,s:(.0015+Math.random()*.003)*(v.speed>0?1:0),v})); }
 init.gps = () => {
   const cv=$('#map'), ctx=cv.getContext('2d');
-  gpsDots=fleetData.map((v,i)=>({id:v.id,a:Math.random()*6.28,r:.2+Math.random()*.9,s:(.0015+Math.random()*.003)*(v.speed>0?1:0),v}));
+  syncGps();
   function size(){ const r=cv.getBoundingClientRect(),d=devicePixelRatio||1; cv.width=r.width*d; cv.height=r.height*d; ctx.setTransform(d,0,0,d,0,0); }
   size(); addEventListener('resize',size);
   const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -497,13 +607,14 @@ init.reports = () => {
 };
 $('#btn-csv').addEventListener('click',()=>{
   const head=['id','model','status','fuel','speed','dtc','part','temp'];
-  const csv=[head.join(',')].concat(fleetData.map(v=>head.map(k=>'"'+String(v[k]).replace(/"/g,'""')+'"').join(','))).join('\n');
+  const csv=[head.join(',')].concat(fleetData.map(v=>head.map(k=>{ let t=String(v[k]); if(typeof v[k]==='string'&&/^[=+\-@]/.test(t)) t="'"+t; return '"'+t.replace(/"/g,'""')+'"'; }).join(','))).join('\n');
   const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv'})); a.download='fleet.csv'; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 });
 
 /* ============ Modals ============ */
-function openM(id){ $(id).classList.add('open'); icons(); }
-function closeM(){ $$('.modal').forEach(m=>m.classList.remove('open')); }
+let lastFocus=null;
+function openM(id){ lastFocus=document.activeElement; const m=$(id); m.classList.add('open'); icons(); const f=m.querySelector('input:not([type=checkbox]),select')||m.querySelector('button'); f&&f.focus(); }
+function closeM(){ $$('.modal').forEach(m=>m.classList.remove('open')); if(lastFocus&&lastFocus.focus) lastFocus.focus(); lastFocus=null; }
 document.addEventListener('click',e=>{
   if(e.target.closest('[data-close]')||e.target.classList.contains('modal')) return closeM();
   const b=e.target.closest('[data-inspect]'); if(!b) return;
@@ -527,20 +638,20 @@ $('#f-add').addEventListener('submit',e=>{
 });
 function refreshAll(){
   renderTable(); renderCars(); renderDtc();
-  $('#kpi-active').textContent=142+fleetData.length-6;
-  $('#kpi-alerts').textContent=3+fleetData.filter(v=>!v.dtc.startsWith('P0000')).length-2;
+  refreshKpis(); if(charts['c-health']) refreshHealth(); if(inited.gps) syncGps();
   [['c-speed',v=>v.speed,vehColors],['c-fuel',v=>v.fuel,()=>fleetData.map(v=>v.fuel<30?C.rose:v.fuel<60?C.amber:C.green)],['c-temp',v=>v.temp,()=>fleetData.map(v=>v.temp>92?C.rose:v.temp>80?C.amber:C.cyan)]].forEach(([id,f,cols])=>{
     const c=charts[id]; if(!c) return; const ds=c.data.datasets[0]; c.data.labels=fleetData.map(v=>v.id); ds.data=fleetData.map(f); ds.base3d=cols(); ds.backgroundColor=barFill(ds.base3d); c.update(); });
 }
 
 /* ============ เอฟเฟกต์เอียงการ์ด 3D ตามเมาส์ ============ */
+let tiltEl=null;
 if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
   document.addEventListener('mousemove',e=>{
-    const el=e.target.closest&&e.target.closest('.card.tilt'); $$('.card.tilt').forEach(c=>{ if(c!==el) c.style.transform=''; });
+    const el=e.target.closest&&e.target.closest('.card.tilt'); if(tiltEl&&tiltEl!==el) tiltEl.style.transform=''; tiltEl=el;
     if(!el) return; const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
     el.style.transform=`perspective(1000px) rotateY(${x*5}deg) rotateX(${-y*5}deg) translateZ(6px)`;
   });
-  document.addEventListener('mouseleave',()=>$$('.card.tilt').forEach(c=>c.style.transform=''));
+  document.addEventListener('mouseleave',()=>{ if(tiltEl) tiltEl.style.transform=''; tiltEl=null; });
 }
 
 /* ============ พื้นหลัง: วีดีโอ + แอนิเมชันกริดถนน (สำรอง) ============ */
@@ -561,9 +672,215 @@ if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
   vid.src=VIDEO_SRC; vid.play&&vid.play().catch(()=>{});
 })();
 
+/* ============ Auth (ฝั่งเบราว์เซอร์เท่านั้น — ดูหมายเหตุความปลอดภัยในคำตอบ) ============ */
+const AUTH_KEY='tlx_auth_v1', SESS_KEY='tlx_sess_v1', FAIL_KEY='tlx_fail_v1', IDLE_MS=30*60*1000, PBKDF2_ITER=150000;
+const b64=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function derive(pw,salt,iter){
+  const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
+  return new Uint8Array(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:iter,hash:'SHA-256'},k,256));
+}
+function sameBytes(a,b){ if(a.length!==b.length) return false; let d=0; for(let i=0;i<a.length;i++) d|=a[i]^b[i]; return d===0; }
+const getAuth=()=>{ try{ return JSON.parse(localStorage.getItem(AUTH_KEY)); }catch(e){ return null; } };
+const getFail=()=>{ try{ return JSON.parse(localStorage.getItem(FAIL_KEY))||{n:0,until:0}; }catch(e){ return {n:0,until:0}; } };
+let lastActive=Date.now(), authBusy=false, unlocked=false, authSetup=false;
+['mousemove','keydown','click','touchstart'].forEach(ev=>addEventListener(ev,()=>{ lastActive=Date.now(); },{passive:true}));
+
+function readSession(){
+  try{ const s=JSON.parse(sessionStorage.getItem(SESS_KEY)), a=getAuth();
+    if(s&&a&&s.user===a.user&&s.exp>Date.now()) return s; }catch(e){}
+  return null;
+}
+function saveSession(user){ try{ sessionStorage.setItem(SESS_KEY,JSON.stringify({user,exp:Date.now()+IDLE_MS})); }catch(e){} }
+
+function showAuth(msg,fatal){
+  const a=getAuth(); authSetup=!a;
+  document.body.classList.add('locked');
+  $('#a-title').textContent=authSetup?'Create admin account':'Sign in';
+  $('#a-hint').textContent=authSetup?'First time here: choose a username and a password (min. 8 characters). Stored in this browser only.':'TELEMATIX.PRO · Fleet & Work Intake';
+  $('#a-confirm-wrap').hidden=!authSetup; $('#a-reset').hidden=authSetup;
+  $('#a-pass').autocomplete=authSetup?'new-password':'current-password';
+  $('#a-submit').textContent=authSetup?'Create account':'Sign in';
+  $('#a-submit').disabled=!!fatal;
+  $('#a-err').textContent=msg||''; $('#a-pass').value=''; $('#a-pass2').value='';
+  if(!fatal) setTimeout(()=>{ (a?$('#a-pass'):$('#a-user')).focus(); if(a) $('#a-user').value=a.user; },30);
+}
+function unlock(user){
+  unlocked=true; lastActive=Date.now(); saveSession(user);
+  $('#who-name').textContent=user; work=Store.load();
+  document.body.classList.remove('locked'); route(); icons();
+}
+function lock(msg){
+  unlocked=false; work=[]; try{ sessionStorage.removeItem(SESS_KEY); }catch(e){}
+  ['c-wmonth','c-wcat'].forEach(id=>{ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }); inited.work=false;
+  const wb=$('#w-body'); if(wb) wb.innerHTML=''; closeM(); showAuth(msg);
+}
+$('#f-auth').addEventListener('submit',async e=>{
+  e.preventDefault(); if(authBusy) return; authBusy=true; const err=$('#a-err'); err.textContent='';
+  try{
+    const user=$('#a-user').value.trim(), pw=$('#a-pass').value;
+    if(authSetup){
+      if(user.length<3) return void(err.textContent='Username must be at least 3 characters.');
+      if(pw.length<8) return void(err.textContent='Password must be at least 8 characters.');
+      if(pw!==$('#a-pass2').value) return void(err.textContent='Passwords do not match.');
+      const salt=crypto.getRandomValues(new Uint8Array(16)), hash=await derive(pw,salt,PBKDF2_ITER);
+      try{ localStorage.setItem(AUTH_KEY,JSON.stringify({user,salt:b64(salt),hash:b64(hash),iter:PBKDF2_ITER})); }
+      catch(x){ return void(err.textContent='Browser storage is blocked — cannot save the account.'); }
+      localStorage.removeItem(FAIL_KEY); unlock(user); return;
+    }
+    const f=getFail(), wait=Math.ceil((f.until-Date.now())/1000);
+    if(wait>0) return void(err.textContent=`Too many attempts. Try again in ${wait}s.`);
+    const a=getAuth(); if(!a) return showAuth();
+    const h=await derive(pw,unb64(a.salt),a.iter||PBKDF2_ITER);
+    if(user.toLowerCase()===a.user.toLowerCase()&&sameBytes(h,unb64(a.hash))){ localStorage.removeItem(FAIL_KEY); unlock(a.user); }
+    else{ f.n=(f.n||0)+1; if(f.n>=5){ f.until=Date.now()+60000; f.n=0; } try{ localStorage.setItem(FAIL_KEY,JSON.stringify(f)); }catch(x){}
+      err.textContent=f.until>Date.now()?'Too many attempts. Locked for 60 seconds.':'Wrong username or password.'; $('#a-pass').value=''; }
+  }finally{ authBusy=false; }
+});
+$('#a-reset').addEventListener('click',()=>{
+  if(!confirm('Reset the account? This ERASES the login and all saved work records in this browser.')) return;
+  localStorage.removeItem(AUTH_KEY); localStorage.removeItem(FAIL_KEY); localStorage.removeItem(Store.key); work=[]; showAuth('Account reset. Create a new one.');
+});
+$('#btn-logout').addEventListener('click',()=>lock('Signed out.'));
+setInterval(()=>{ if(!unlocked) return;
+  if(Date.now()-lastActive>IDLE_MS) lock('Signed out after 30 minutes of inactivity.'); else { const s=readSession(); if(s) saveSession(s.user); else lock('Session expired.'); } },15000);
+function boot(){
+  if(!(window.crypto&&crypto.subtle)) return showAuth('This page needs HTTPS (GitHub Pages is fine) or localhost to protect the password.',true);
+  const s=readSession(); s?unlock(s.user):showAuth();
+}
+
+/* ============ Work Intake ============ */
+const Store={ key:'tlx_work_v1',
+  load(){ try{ const a=JSON.parse(localStorage.getItem(this.key)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } },
+  save(a){ try{ localStorage.setItem(this.key,JSON.stringify(a)); return true; }catch(e){ toast('Cannot save — browser storage is full or blocked.'); return false; } } };
+let work=[];
+const pad2=n=>String(n).padStart(2,'0');
+const money=n=>(n<0?'-':'')+'฿'+Math.abs(Number(n)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const MON=[['ม\\.?ค\\.?|มกราคม|jan',1],['ก\\.?พ\\.?|กุมภาพันธ์|feb',2],['มี\\.?ค\\.?|มีนาคม|mar',3],['เม\\.?ย\\.?|เมษายน|apr',4],['พ\\.?ค\\.?|พฤษภาคม|may',5],['มิ\\.?ย\\.?|มิถุนายน|jun',6],['ก\\.?ค\\.?|กรกฎาคม|jul',7],['ส\\.?ค\\.?|สิงหาคม|aug',8],['ก\\.?ย\\.?|กันยายน|sep',9],['ต\\.?ค\\.?|ตุลาคม|oct',10],['พ\\.?ย\\.?|พฤศจิกายน|nov',11],['ธ\\.?ค\\.?|ธันวาคม|dec',12]].map(([p,n])=>[new RegExp('^('+p+')',"i"),n]);
+function mkDate(y,m,d){ if(y>2400) y-=543; if(y<100) y+=2000; if(!(m>=1&&m<=12&&d>=1&&d<=31&&y>=1990&&y<=2100)) return null;
+  const t=new Date(Date.UTC(y,m-1,d)); return t.getUTCMonth()!==m-1?null:`${y}-${pad2(m)}-${pad2(d)}`; }
+function parseDate(v){
+  if(v==null||v==='') return null;
+  if(v instanceof Date) return isNaN(v)?null:mkDate(v.getFullYear(),v.getMonth()+1,v.getDate());
+  if(typeof v==='number'){ if(v>20000&&v<80000){ const t=new Date(Date.UTC(1899,11,30)+Math.floor(v)*864e5); return mkDate(t.getUTCFullYear(),t.getUTCMonth()+1,t.getUTCDate()); } return null; }
+  const s=String(v).trim(); let m;
+  if(/^\d{5}$/.test(s)) return parseDate(Number(s));
+  if((m=s.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) return mkDate(+m[1],+m[2],+m[3]);
+  if((m=s.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) return mkDate(+m[3],+m[2],+m[1]);   // วัน/เดือน/ปี (ไทย) รองรับ พ.ศ.
+  if((m=s.match(/^(\d{1,2})\s*[-\/ ]?\s*([^\d\s\-\/]+)\.?\s*[-\/ ]?\s*(\d{2,4})/))){ const hit=MON.find(([re])=>re.test(m[2])); if(hit) return mkDate(+m[3],hit[1],+m[1]); }
+  return null;
+}
+function parseAmount(v){
+  if(typeof v==='number') return isFinite(v)?v:null;
+  if(v==null) return null; let s=String(v).trim(); if(!s) return null;
+  const neg=/^\(.*\)$/.test(s)||/^[-−–]/.test(s); s=s.replace(/[^\d.,]/g,'').replace(/,/g,'');
+  if(!/\d/.test(s)) return null; const n=parseFloat(s); return isFinite(n)?(neg?-n:n):null;
+}
+
+function workStats(){
+  const byM={},byC={}; let tot=0;
+  work.forEach(r=>{ tot+=r.amount; const k=r.date.slice(0,7); byM[k]=(byM[k]||0)+r.amount; const c=r.cat||'(none)'; byC[c]=(byC[c]||0)+r.amount; });
+  return {tot,byM,byC,months:Object.keys(byM).sort()};
+}
+function setBar(id,labels,data,colors,extra){
+  const c=charts[id]; if(!c) return barChart(id,labels,data,colors,extra);
+  const ds=c.data.datasets[0]; c.data.labels=labels; ds.data=data; ds.base3d=colors; ds.backgroundColor=barFill(colors); c.update();
+}
+function renderWork(){
+  const {tot,byM,byC,months}=workStats(), now=new Date(), key=`${now.getFullYear()}-${pad2(now.getMonth()+1)}`, pv=new Date(now.getFullYear(),now.getMonth()-1,1), pkey=`${pv.getFullYear()}-${pad2(pv.getMonth()+1)}`;
+  $('#w-total').textContent=money(tot); $('#w-total-sub').textContent=`${work.length.toLocaleString()} records`;
+  const cm=byM[key]||0, lm=byM[pkey]; $('#w-month').textContent=money(cm);
+  $('#w-month-sub').textContent=lm?`${cm>=lm?'▲':'▼'} ${Math.abs((cm-lm)/Math.abs(lm)*100).toFixed(1)}% vs last month`:'no data for last month';
+  $('#w-avg').textContent=money(months.length?tot/months.length:0); $('#w-avg-sub').textContent=`${months.length} month${months.length===1?'':'s'} with data`;
+  const last=work.reduce((m,r)=>r.date>m?r.date:m,''); $('#w-last').textContent=last||'—';
+  // month filter
+  const sel=$('#w-m'), cur=sel.value; sel.innerHTML='<option value="ALL">All months</option>'+months.slice().reverse().map(m=>`<option value="${m}">${m}</option>`).join(''); sel.value=months.includes(cur)?cur:'ALL';
+  // table
+  const q=$('#w-q').value.trim().toLowerCase(), mf=sel.value;
+  const rows=work.filter(r=>(mf==='ALL'||r.date.startsWith(mf))&&(!q||(r.desc+' '+r.cat).toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id));
+  $('#w-body').innerHTML=rows.slice(0,200).map(r=>`<tr><td class="mono">${r.date}</td><td>${esc(r.desc)||'<span class="dim">—</span>'}</td><td class="dim">${esc(r.cat)||'—'}</td><td class="right mono ${r.amount<0?'neg':'pos'}">${money(r.amount)}</td><td class="right"><button class="sm-btn" data-wdel="${esc(r.id)}" aria-label="Delete record">Delete</button></td></tr>`).join('')
+    ||`<tr><td colspan="5" class="empty">${work.length?'No records match the filter.':'No records yet — click “Import Excel / CSV” or “Add Record”.'}</td></tr>`;
+  $('#w-count').textContent=`${rows.length.toLocaleString()} shown`;
+  $('#w-note').textContent=rows.length>200?`Showing the latest 200 of ${rows.length.toLocaleString()} matching records (use search / month filter to narrow, or Export for everything).`:'';
+  if(!inited.work) return;
+  const ml=months.slice(-12); setBar('c-wmonth',ml,ml.map(m=>Math.round(byM[m]*100)/100),ml.map(m=>byM[m]<0?C.rose:C.green),{y:{ticks:{callback:v=>Number(v).toLocaleString('en-US')}},tip:{callbacks:{label:c=>money(c.parsed.y)}}});
+  const cats=Object.entries(byC).sort((a,b)=>Math.abs(b[1])-Math.abs(a[1])).slice(0,6), pal=[C.cyan,C.violet,C.amber,C.green,C.blue,C.rose];
+  setBar('c-wcat',cats.map(c=>c[0].length>14?c[0].slice(0,13)+'…':c[0]),cats.map(c=>Math.round(c[1]*100)/100),cats.map((_,i)=>pal[i]),{y:{ticks:{callback:v=>Number(v).toLocaleString('en-US')}},tip:{callbacks:{label:c=>money(c.parsed.y)}}});
+}
+init.work=()=>renderWork();
+$('#w-q').addEventListener('input',renderWork); $('#w-m').addEventListener('change',renderWork);
+document.addEventListener('click',e=>{ const b=e.target.closest('[data-wdel]'); if(!b) return;
+  if(!confirm('Delete this record?')) return; const next=work.filter(r=>r.id!==b.dataset.wdel); if(Store.save(next)){ work=next; renderWork(); toast('Record deleted'); } });
+$('#w-clear').addEventListener('click',()=>{ if(!work.length) return toast('Nothing to clear'); if(!confirm(`Delete ALL ${work.length} records? This cannot be undone.`)) return; if(Store.save([])){ work=[]; renderWork(); toast('All records cleared'); } });
+$('#w-export').addEventListener('click',()=>{
+  if(!window.XLSX) return toast('Excel library failed to load'); if(!work.length) return toast('No records to export');
+  const ws=XLSX.utils.json_to_sheet(work.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(r=>({Date:r.date,Description:r.desc,Category:r.cat,Amount:r.amount})));
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Work Intake'); XLSX.writeFile(wb,'work-intake.xlsx');
+});
+// เพิ่มรายการเอง
+$('#w-add').addEventListener('click',()=>{ const n=new Date(); $('#r-date').value=`${n.getFullYear()}-${pad2(n.getMonth()+1)}-${pad2(n.getDate())}`; openM('#m-rec'); });
+$('#f-rec').addEventListener('submit',e=>{ e.preventDefault();
+  const date=parseDate($('#r-date').value), amount=parseAmount($('#r-amt').value); if(!date||amount==null) return toast('Please enter a valid date and amount');
+  const next=work.concat({id:uid(),date,amount,desc:$('#r-desc').value.trim(),cat:$('#r-cat').value.trim()});
+  if(Store.save(next)){ work=next; renderWork(); closeM(); e.target.reset(); toast('Record saved'); } });
+
+// นำเข้า Excel / CSV
+const imp={wb:null,headers:[],rows:[]};
+$('#w-import').addEventListener('click',()=>$('#w-file').click());
+$('#w-file').addEventListener('change',async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  if(f.size>10*1024*1024) return toast('File too large (max 10 MB)'); if(!window.XLSX) return toast('Excel library failed to load — check your connection');
+  try{
+    imp.wb=/\.csv$/i.test(f.name)?XLSX.read(await f.text(),{type:'string',raw:true}):XLSX.read(await f.arrayBuffer(),{type:'array'});
+    $('#imp-file').textContent=f.name; $('#imp-sheet').innerHTML=imp.wb.SheetNames.map((n,i)=>`<option value="${i}">${esc(n)}</option>`).join('');
+    if(!loadSheet(0)) return; openM('#m-import');
+  }catch(err){ console.error(err); toast('Cannot read this file'); }
+});
+$('#imp-sheet').addEventListener('change',e=>loadSheet(+e.target.value));
+['imp-date','imp-amt','imp-desc','imp-cat','imp-dedupe'].forEach(id=>$('#'+id).addEventListener('change',previewImport));
+const GUESS={date:/date|วัน|เวลา/i,amt:/amount|total|price|ยอด|จำนวนเงิน|เงิน|ราคา|มูลค่า|บาท|revenue|income|รายรับ/i,desc:/desc|item|รายการ|ชื่อ|งาน|detail|รายละเอียด|name|job|order|เลขที่|หมายเหตุ/i,cat:/cat|type|ประเภท|หมวด|ลูกค้า|customer|client|แผนก|dept|หน่วยงาน/i};
+function loadSheet(i){
+  const ws=imp.wb.Sheets[imp.wb.SheetNames[i]], aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null,blankrows:false});
+  if(!aoa.length) { toast('This sheet is empty'); return false; }
+  let hi=aoa.slice(0,10).findIndex(r=>r.filter(c=>c!=null&&String(c).trim()!=='').length>=2); if(hi<0) hi=0;
+  const width=Math.max(...aoa.map(r=>r.length)); imp.headers=Array.from({length:width},(_,j)=>{ const h=aoa[hi][j]; return h==null||String(h).trim()===''?`Column ${j+1}`:String(h).trim(); });
+  imp.rows=aoa.slice(hi+1);
+  const opts=(none)=>(none?'<option value="">— none —</option>':'')+imp.headers.map((h,j)=>`<option value="${j}">${esc(h)}</option>`).join('');
+  $('#imp-date').innerHTML=opts(false); $('#imp-amt').innerHTML=opts(false); $('#imp-desc').innerHTML=opts(true); $('#imp-cat').innerHTML=opts(true);
+  const find=re=>imp.headers.findIndex(h=>re.test(h)), ratio=(j,fn)=>{ const s=imp.rows.slice(0,50).map(r=>r[j]).filter(v=>v!=null&&v!==''); return s.length?s.filter(v=>fn(v)!=null).length/s.length:0; };
+  let d=find(GUESS.date); if(d<0){ let best=0; imp.headers.forEach((_,j)=>{ const r=ratio(j,parseDate); if(r>best){best=r;d=j;} }); } if(d<0) d=0;
+  let a=imp.headers.findIndex((h,j)=>j!==d&&GUESS.amt.test(h)); if(a<0){ let best=0; imp.headers.forEach((_,j)=>{ if(j===d) return; const r=ratio(j,v=>typeof v==='number'?v:null); if(r>best){best=r;a=j;} }); } if(a<0) a=Math.min(1,width-1);
+  const ds=(()=>{ for(const re of [/รายละเอียด|รายการ|desc|detail|item/i,GUESS.desc]){ const k=imp.headers.findIndex((h,j)=>j!==d&&j!==a&&re.test(h)); if(k>=0) return k; } return -1; })(), ct=imp.headers.findIndex((h,j)=>j!==d&&j!==a&&j!==ds&&GUESS.cat.test(h));
+  $('#imp-date').value=d; $('#imp-amt').value=a; $('#imp-desc').value=ds<0?'':ds; $('#imp-cat').value=ct<0?'':ct;
+  previewImport(); return true;
+}
+function convertRows(){
+  const di=+$('#imp-date').value, ai=+$('#imp-amt').value, si=$('#imp-desc').value, ci=$('#imp-cat').value, out=[]; let bad=0;
+  imp.rows.forEach(r=>{ if(!r.some(c=>c!=null&&String(c).trim()!=='')) return;
+    const date=parseDate(r[di]), amount=parseAmount(r[ai]); if(!date||amount==null){ bad++; return; }
+    out.push({date,amount,desc:si===''?'':String(r[+si]??'').trim().slice(0,200),cat:ci===''?'':String(r[+ci]??'').trim().slice(0,80)}); });
+  return {out,bad};
+}
+function previewImport(){
+  const {out,bad}=convertRows(), sum=out.reduce((a,r)=>a+r.amount,0);
+  $('#imp-prev').innerHTML='<thead><tr><th>DATE</th><th>DESCRIPTION</th><th>CATEGORY</th><th class="right">AMOUNT</th></tr></thead><tbody>'+out.slice(0,5).map(r=>`<tr><td class="mono">${r.date}</td><td>${esc(r.desc)}</td><td class="dim">${esc(r.cat)}</td><td class="right mono">${money(r.amount)}</td></tr>`).join('')+'</tbody>';
+  $('#imp-sum').textContent=`${out.length} valid row(s) · ${bad} skipped (invalid date or amount) · total ${money(sum)}`;
+  $('#btn-do-import').disabled=!out.length;
+}
+$('#btn-do-import').addEventListener('click',()=>{
+  const {out}=convertRows(); if(!out.length) return;
+  const replace=$('#imp-mode').value==='replace', base=replace?[]:work, key=r=>`${r.date}|${r.amount}|${r.desc}|${r.cat}`, seen=new Map();
+  if($('#imp-dedupe').checked) base.forEach(r=>seen.set(key(r),(seen.get(key(r))||0)+1));
+  let skipped=0; const add=[];
+  out.forEach(r=>{ const k=key(r), n=seen.get(k)||0; if(n>0){ seen.set(k,n-1); skipped++; } else add.push({id:uid(),...r}); });
+  const next=base.concat(add); if(!Store.save(next)) return;
+  work=next; renderWork(); closeM(); toast(`Imported ${add.length} record(s)`+(skipped?` · ${skipped} duplicate(s) skipped`:''));
+});
+
 /* ============ เริ่มทำงาน ============ */
 icons();
-route();
+boot();
 </script>
 </body>
 </html>
