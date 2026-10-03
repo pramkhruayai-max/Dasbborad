@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lucide@0.451.0/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Orbitron:wght@500;700;900&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#04060c; --ink:#e6edf7; --mute:#8a99b2; --line:rgba(148,163,184,.14);
@@ -159,6 +159,113 @@ td .act{flex-wrap:nowrap;justify-content:flex-end}
 body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node{display:none}
 .alogo{display:flex;align-items:center;gap:12px}.alogo h1{font-size:16px;letter-spacing:.06em}.alogo h1 span{color:var(--cyan)}.alogo p{font-size:10px;color:var(--mute);font-family:'Chakra Petch'}
 .auth .sheet{max-width:440px}
+/* ================= HUD command-center theme ================= */
+:root{--bg:#030b1f;--ink:#dbe9ff;--mute:#7f9bc7;--line:rgba(47,123,255,.32);--cyan:#19c3ff;--green:#18d98b;--amber:#ffc928;--rose:#ff4b5c;--violet:#8f7bff;
+  --panel:linear-gradient(180deg,rgba(8,38,92,.74),rgba(3,15,42,.88))}
+body{background:#030b1f}
+.bg{background:radial-gradient(1100px 700px at 72% -12%,#0c3470 0%,transparent 60%),radial-gradient(900px 600px at 0% 100%,#071d4a 0%,transparent 55%),#030b1f}
+.bg::after{background:linear-gradient(180deg,rgba(3,11,31,.45),rgba(3,11,31,.78))}
+.num,.gc b,.tile b,.mapstats b,.srows b,.mono.big{font-family:'Orbitron','Chakra Petch',sans-serif;letter-spacing:.02em}
+
+/* panels: มุมวงเล็บ + กรอบฟ้า (ไม่ใช้การ์ดมนแบบเดิม) */
+.card,.sheet{--b:#19c3ff;border:1px solid var(--line);border-radius:2px;backdrop-filter:blur(5px);
+  background:
+   linear-gradient(var(--b),var(--b)) 0 0/16px 2px no-repeat,linear-gradient(var(--b),var(--b)) 0 0/2px 16px no-repeat,
+   linear-gradient(var(--b),var(--b)) 100% 0/16px 2px no-repeat,linear-gradient(var(--b),var(--b)) 100% 0/2px 16px no-repeat,
+   linear-gradient(var(--b),var(--b)) 0 100%/16px 2px no-repeat,linear-gradient(var(--b),var(--b)) 0 100%/2px 16px no-repeat,
+   linear-gradient(var(--b),var(--b)) 100% 100%/16px 2px no-repeat,linear-gradient(var(--b),var(--b)) 100% 100%/2px 16px no-repeat,
+   var(--panel);
+  box-shadow:inset 0 0 30px rgba(25,120,255,.12),0 12px 30px -14px #000}
+.card h3{font:600 13px 'Chakra Petch',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#eaf4ff;display:flex;align-items:center;gap:9px}
+.card h3::before{content:"";width:4px;height:14px;background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.chip{margin-left:auto;font:500 9px 'Chakra Petch';letter-spacing:.12em;color:var(--amber);border:1px solid rgba(255,201,40,.45);padding:2px 7px}
+.card .sub{color:var(--mute);font-size:11px;letter-spacing:.04em}
+.sh{background:rgba(25,120,255,.12);letter-spacing:.06em}
+.sb,.sf{background:transparent}
+
+header{background:linear-gradient(180deg,rgba(9,42,100,.55),rgba(3,12,34,.65));border-bottom:1px solid var(--line);box-shadow:0 1px 18px rgba(25,120,255,.18)}
+header h2{font-size:15px;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 0 14px rgba(25,195,255,.7)}
+header h2::before{content:"//";color:var(--cyan);margin-right:10px}
+#clock{font:500 13px 'Orbitron',monospace;color:var(--cyan);letter-spacing:.08em;text-shadow:0 0 10px rgba(25,195,255,.6)}
+.live{border-radius:0;color:var(--green);border-color:rgba(24,217,139,.4)}
+.side{background:linear-gradient(180deg,rgba(4,16,44,.92),rgba(2,8,24,.95));border-right:1px solid var(--line)}
+.logo{border-radius:2px;background:linear-gradient(145deg,#19c3ff,#0a4fd6);box-shadow:0 0 18px rgba(25,195,255,.55)}
+.nav a{border-radius:0;border-left:2px solid transparent;letter-spacing:.02em}
+.nav a:hover{background:rgba(25,195,255,.08);color:#fff}
+.nav a.on{background:linear-gradient(90deg,rgba(25,195,255,.28),rgba(25,195,255,0));border-left-color:var(--cyan);box-shadow:none;transform:none}
+.ava{border-radius:2px}
+
+.btn{border-radius:0;top:0;text-transform:uppercase;letter-spacing:.07em;font:600 12px 'Chakra Petch',sans-serif;border:1px solid #4aa8ff;
+  background:linear-gradient(180deg,#1478ff,#0a49c0);box-shadow:inset 0 0 14px rgba(120,200,255,.35);
+  clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.btn:hover{filter:brightness(1.2)}.btn:active{top:0;transform:translateY(1px);box-shadow:inset 0 0 10px rgba(0,0,0,.4)}
+.btn.ghost{background:rgba(25,120,255,.14);border-color:var(--line);color:#bcd6ff;box-shadow:inset 0 0 12px rgba(25,120,255,.2)}
+.sm-btn{border-radius:0;background:rgba(25,120,255,.14);border:1px solid var(--line);box-shadow:none;top:0;text-transform:uppercase;letter-spacing:.05em;font-size:11px}
+.sm-btn:hover{background:rgba(25,195,255,.2);border-color:var(--cyan)}.sm-btn:active{top:1px;box-shadow:none}
+input,select{border-radius:0;background:rgba(2,10,30,.85);border:1px solid var(--line);box-shadow:none}
+input:focus,select:focus{outline:1px solid var(--cyan);box-shadow:0 0 12px rgba(25,195,255,.35)}
+.tabs button{border-radius:0;box-shadow:none;background:rgba(25,120,255,.1);letter-spacing:.06em;text-transform:uppercase;font-size:12px}
+.tabs button.on{background:linear-gradient(180deg,#1478ff,#0a49c0);box-shadow:inset 0 0 14px rgba(120,200,255,.35);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+th{background:rgba(25,120,255,.2);color:#cfe3ff;border-bottom:1px solid var(--line);letter-spacing:.08em}
+td{border-bottom:1px solid rgba(47,123,255,.14)}
+tbody tr:hover{background:rgba(25,195,255,.08)}
+.badge{border-radius:0}
+.track{border-radius:0;box-shadow:none;background:repeating-linear-gradient(90deg,rgba(47,123,255,.2) 0 6px,transparent 6px 8px)}
+.track i,.mini .track i{border-radius:0;background:repeating-linear-gradient(90deg,var(--cyan) 0 6px,transparent 6px 8px);box-shadow:none}
+.ico{border-radius:2px;box-shadow:none;border:1px solid var(--c);background:rgba(25,195,255,.06)}
+.kpi::before{height:1px}
+.box{border-radius:0;border:1px solid var(--line);background:rgba(25,120,255,.06)}
+.toast{border-radius:0;border:1px solid var(--cyan);background:rgba(4,20,56,.95)}
+#map,#hudmap{border-radius:0}
+.legend i{border-radius:0;box-shadow:none}
+.legend.row{flex-direction:row;flex-wrap:wrap;gap:4px 14px;justify-content:center;margin-top:2px}.legend.row div{gap:6px;justify-content:flex-start}
+
+/* ================= Dashboard layout ================= */
+.hud{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:350px 310px 320px auto;gap:14px}
+.hud>.card{display:flex;flex-direction:column;min-height:0;padding:14px 16px}
+.p-scan{grid-column:span 4}.p-gauges{grid-column:span 3}.p-map{grid-column:span 5}
+.p-matrix{grid-column:span 4}.p-tiles{grid-column:span 3}.p-bars{grid-column:span 5}
+.p-multi{grid-column:span 5}.p-mkt{grid-column:span 4}.p-stats{grid-column:span 3}.p-fleet{grid-column:1/-1;min-height:0}
+.hud .chart{flex:1;height:auto;min-height:0;margin-top:6px}
+.scanwrap{position:relative;flex:1;min-height:0;margin-top:6px}
+.scan{width:100%;height:100%;display:block}
+.sweep{animation:sweep 3.4s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:translateX(30px)}to{transform:translateX(380px)}}
+.miniplot{position:absolute;right:0;top:0;width:46%;height:30%;border:1px solid var(--line);background:rgba(2,10,30,.7);padding:2px}
+.miniplot canvas{width:100%!important;height:100%!important}
+.gauges{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;margin-top:6px;min-height:0}
+.gauge{position:relative;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gsvg-wrap{width:100%;flex:1;min-height:0;display:flex;justify-content:center}.gsvg{height:100%;max-height:118px;width:auto}
+.gauge .gc{position:absolute;left:0;right:0;top:calc(50% - 30px);text-align:center;pointer-events:none}
+.gc b{display:block;font-size:20px;color:#fff;text-shadow:0 0 12px rgba(25,195,255,.7)}.gc small{font-size:9px;color:var(--mute);letter-spacing:.06em}
+.gl{font:600 10px 'Chakra Petch';letter-spacing:.1em;text-transform:uppercase;color:#bcd6ff;margin-top:-4px}
+.gsvg .spin{transform-origin:60px 60px;animation:spin 14s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.gsvg line.on{filter:drop-shadow(0 0 3px currentColor)}
+.mapwrap{flex:1;min-height:0;display:flex;gap:10px;margin-top:6px}
+.mapstats{width:36%;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.mapstats>div{border-left:2px solid var(--cyan);padding:2px 0 2px 10px;background:linear-gradient(90deg,rgba(25,195,255,.12),transparent)}
+.mapstats small{display:block;font:500 9px 'Chakra Petch';letter-spacing:.12em;color:var(--mute)}.mapstats b{font-size:22px;color:#fff;text-shadow:0 0 10px rgba(25,195,255,.6)}
+.mapcv{flex:1;min-width:0;position:relative}.mapcv canvas{position:absolute;inset:0;width:100%;height:100%}
+.hud-table{font-size:12px}.hud-table th,.hud-table td{padding:8px 10px;text-align:center;white-space:nowrap}.hud-table td:first-child,.hud-table th:first-child{text-align:left;color:#bcd6ff;font-weight:600}
+.hud-table td{font-family:'Orbitron',sans-serif;font-size:12px}
+.tiles{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:8px;margin-top:10px;min-height:0}
+.tile{position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;border:1px solid var(--line);background:linear-gradient(180deg,rgba(25,120,255,.16),rgba(25,120,255,.03));
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+.tile small{font:600 9px 'Chakra Petch';letter-spacing:.1em;color:#9ec4ff;border:1px solid var(--line);padding:1px 8px;background:rgba(2,10,30,.6)}
+.tile b{font-size:19px;color:var(--cyan);margin-top:4px;text-shadow:0 0 10px rgba(25,195,255,.55)}.tile.warn b{color:var(--amber)}.tile.bad b{color:var(--rose)}
+.tabs2{display:flex;gap:2px;margin-top:8px}.tabs2 button{flex:1;padding:6px 0;border:0;background:rgba(25,120,255,.1);color:var(--mute);font:600 11px 'Chakra Petch';letter-spacing:.1em;cursor:pointer}
+.tabs2 button.on{color:#fff;background:linear-gradient(180deg,#1478ff,#0a49c0);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.srows{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.srows>div{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:linear-gradient(90deg,rgba(25,120,255,.28),rgba(25,120,255,.06));border-left:2px solid var(--cyan);font-size:12px}
+.srows b{color:var(--amber);font-size:14px}
+@media(max-width:1250px){.hud{grid-template-rows:none;grid-auto-rows:minmax(310px,auto)}.hud>.card{grid-column:span 6!important}.hud>.p-fleet{grid-column:1/-1!important}}
+@media(max-width:800px){.hud>.card{grid-column:1/-1!important}}
+
+header h2{white-space:nowrap;font-size:14px;letter-spacing:.1em;overflow:hidden;text-overflow:ellipsis;min-width:0}
+header>div:first-child{min-width:0;flex:1}.hr{flex:none}
+.live{white-space:nowrap}
+@media(max-width:1500px){.live{display:none}}
+@media(max-width:1250px){#clock{display:none}.btn .lbl{display:none}}
 </style>
 </head>
 <body class="locked">
@@ -172,6 +279,7 @@ body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node
 <div class="auth" id="auth">
   <form class="sheet" id="f-auth" novalidate>
     <div class="sb" style="gap:16px;padding-bottom:26px">
+      <button class="link" type="button" id="a-back" hidden style="text-decoration:none;color:var(--cyan);font-weight:600">← กลับไปหน้าเข้าสู่ระบบ</button>
       <div class="alogo"><div class="logo"><i data-lucide="cpu"></i></div><div><h1>TELEMATIX<span>.PRO</span></h1><p>FLEET &amp; WORK SYSTEM</p></div></div>
       <div class="tabs" id="a-tabs" role="tablist" style="padding:0"><button type="button" data-sys="ops">Fleet &amp; Stock</button><button type="button" data-sys="work">Work Intake</button></div>
       <div><h2 id="a-title" style="font-size:20px">เข้าสู่ระบบ</h2><div class="dim" id="a-hint" style="margin-top:4px"></div></div>
@@ -183,6 +291,7 @@ body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node
       <button class="btn" id="a-submit" type="submit" style="justify-content:center">เข้าสู่ระบบ</button>
       <button class="link" type="button" id="a-toggle" style="text-align:center;text-decoration:none;color:var(--cyan);font-weight:600"></button>
       <button class="link" type="button" id="a-reset" hidden></button>
+      <div class="dim" style="text-align:center;font-size:11px">build 2026-10-02 · login-first</div>
     </div>
   </form>
 </div>
@@ -221,6 +330,7 @@ body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node
       <span class="live"><i></i>Live Data Streaming</span>
     </div>
     <div class="hr">
+      <div class="mono" id="clock" aria-hidden="true"></div>
       <button class="btn" id="btn-add"><i data-lucide="plus"></i>Register Vehicle</button>
       <div class="ava"><i data-lucide="user" style="width:16px;height:16px"></i></div>
       <div class="who"><span id="who-name" style="color:var(--ink);font-size:12px">Fleet Director</span><br><span id="sys-name">Fleet &amp; Stock</span></div>
@@ -233,40 +343,125 @@ body[data-sys=work] #btn-add,body[data-sys=work] .live,body[data-sys=work] .node
 
     <!-- ===== DASHBOARD ===== -->
     <section class="view" data-view="dashboard">
-      <div class="grid kpis">
-        <div class="card kpi tilt" style="--c:#38bdf8"><div><p>ACTIVE VEHICLES</p><div class="num" id="kpi-active">0</div><em id="kpi-online" style="color:var(--green)">—</em></div><div class="ico"><i data-lucide="car"></i></div></div>
-        <div class="card kpi tilt" style="--c:#34d399"><div><p>AVG FUEL ECONOMY</p><div class="num">11.4 <small>km/L</small></div><em style="color:var(--green)">+0.8 km/L vs Target</em></div><div class="ico"><i data-lucide="fuel"></i></div></div>
-        <div class="card kpi tilt" style="--c:#fbbf24"><div><p>DTC ALERTS</p><div class="num" id="kpi-alerts" style="color:var(--amber)">3</div><em style="color:var(--amber)">Requires Attention</em></div><div class="ico"><i data-lucide="alert-triangle"></i></div></div>
-        <div class="card kpi tilt" style="--c:#94a3b8"><div><p>CRITICAL SPARE STOCK</p><div class="num">88%</div><em style="color:var(--mute)">OBD-II Sensor Replacements</em></div><div class="ico"><i data-lucide="package-check"></i></div></div>
-        <div class="card kpi tilt" style="--c:#a78bfa"><div><p>CAN-BUS THROUGHPUT</p><div class="num">1.8 <small>GB/hr</small></div><em style="color:var(--cyan)">Realtime Streaming</em></div><div class="ico"><i data-lucide="database"></i></div></div>
-      </div>
+  <div class="hud">
 
-      <div class="grid two">
-        <div class="card tilt">
-          <h3>Real-time Telemetry Analytics (GT-R Fleet #3501)</h3><div class="sub">Engine Speed (RPM) &amp; Vehicle Velocity (km/h) · Sample Rate 50ms</div>
-          <div class="chart"><canvas id="c-live"></canvas></div>
-        </div>
-        <div class="card tilt">
-          <h3>Fleet Diagnostic Health</h3><div class="sub">OBD-II DTC Status Breakdown</div>
-          <div class="chart sm"><canvas id="c-health"></canvas></div>
-          <div class="legend" id="lg-health"></div>
-        </div>
+    <div class="card p-scan">
+      <h3>Vehicle Scan <span class="chip">SAMPLE DATA</span></h3>
+      <div class="scanwrap">
+        <svg class="scan" viewBox="0 0 440 260" preserveAspectRatio="xMidYMid meet" aria-label="Vehicle wireframe">
+          <defs>
+            <linearGradient id="scanG" x1="0" x2="1"><stop offset="0" stop-color="#19c3ff" stop-opacity="0"/><stop offset=".55" stop-color="#19c3ff" stop-opacity=".85"/><stop offset="1" stop-color="#19c3ff" stop-opacity="0"/></linearGradient>
+            <clipPath id="carClip"><path d="M40 172 L44 150 Q50 138 84 134 L146 126 L180 100 Q198 90 226 90 L292 90 Q318 92 334 112 L366 124 Q396 132 402 152 L404 172 L354 172 A24 24 0 0 0 306 172 L144 172 A24 24 0 0 0 96 172 Z"/></clipPath>
+          </defs>
+          <g stroke="rgba(47,123,255,.28)" stroke-width="1" fill="none">
+            <path d="M10 196 H430 M30 212 H410 M60 228 H380 M100 244 H340"/>
+            <path d="M220 196 V252 M150 196 L110 252 M290 196 L330 252 M80 196 L20 252 M360 196 L420 252"/>
+          </g>
+          <g fill="none" stroke="#19c3ff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+            <path d="M40 172 L44 150 Q50 138 84 134 L146 126 L180 100 Q198 90 226 90 L292 90 Q318 92 334 112 L366 124 Q396 132 402 152 L404 172 L354 172 A24 24 0 0 0 306 172 L144 172 A24 24 0 0 0 96 172 Z" fill="rgba(25,195,255,.07)"/>
+            <path d="M184 122 L204 98 L286 98 L322 118 Z" stroke-opacity=".8"/>
+            <path d="M246 98 L240 122 M146 126 L300 120 M300 120 L334 112" stroke-opacity=".55"/>
+            <path d="M60 160 H92 M352 160 H396" stroke-opacity=".5"/>
+            <path d="M150 140 H290" stroke="#ffc928" stroke-dasharray="3 4" stroke-opacity=".7"/>
+          </g>
+          <g fill="none" stroke="#19c3ff" stroke-width="1.4">
+            <circle cx="120" cy="172" r="24"/><circle cx="120" cy="172" r="14" stroke-opacity=".7"/><circle cx="120" cy="172" r="4" fill="#19c3ff"/>
+            <circle cx="330" cy="172" r="24"/><circle cx="330" cy="172" r="14" stroke-opacity=".7"/><circle cx="330" cy="172" r="4" fill="#19c3ff"/>
+            <path d="M120 148 V196 M96 172 H144 M103 155 L137 189 M137 155 L103 189 M330 148 V196 M306 172 H354 M313 155 L347 189 M347 155 L313 189" stroke-opacity=".35"/>
+          </g>
+          <g clip-path="url(#carClip)"><rect class="sweep" x="0" y="80" width="70" height="100" fill="url(#scanG)"/></g>
+          <g class="callout" fill="none" stroke="#ffc928" stroke-width="1">
+            <path d="M160 140 L118 78 H40"/><circle cx="160" cy="140" r="3" fill="#ffc928"/>
+            <path d="M200 150 L168 214 H40"/><circle cx="200" cy="150" r="3" fill="#ffc928"/>
+            <path d="M300 160 L350 214 H420"/><circle cx="300" cy="160" r="3" fill="#ffc928"/>
+          </g>
+          <g font-family="Chakra Petch,sans-serif" font-size="11" fill="#dbe9ff" letter-spacing=".5">
+            <text x="40" y="72" id="sc-eng">ENGINE</text>
+            <text x="40" y="228" id="sc-dtc">OBD</text>
+            <text x="330" y="210" id="sc-bat" text-anchor="start">PACK</text>
+            <text x="14" y="18" fill="#7f9bc7" font-size="10" id="sc-id">UNIT</text>
+            <text x="426" y="18" fill="#18d98b" font-size="10" text-anchor="end">SCAN ACTIVE</text>
+          </g>
+        </svg>
+        <div class="miniplot"><canvas id="c-live"></canvas></div>
       </div>
+    </div>
 
-      <div class="card">
-        <div class="tools">
-          <div style="display:flex;gap:12px;align-items:baseline"><h3>Live Fleet Telematics &amp; Inventory Status</h3><span class="dim mono" id="rec-count"></span></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <input id="q" placeholder="Search Vehicle ID or Model..." style="width:250px" aria-label="Search">
-            <select id="st" aria-label="Status filter"><option value="ALL">All Statuses</option><option value="Operational">Operational</option><option value="Warning">Warning / DTC</option><option value="Maintenance">Maintenance Required</option></select>
-          </div>
-        </div>
-        <div class="tw"><table>
-          <thead><tr><th>VEHICLE ID &amp; MODEL</th><th>STATUS</th><th>FUEL / BATTERY</th><th>SPEED</th><th>OBD-II (DTC)</th><th>SPARE PART</th><th style="text-align:right">ACTIONS</th></tr></thead>
-          <tbody id="tbody"></tbody>
-        </table></div>
+    <div class="card p-gauges">
+      <h3>Fleet Status</h3>
+      <div class="gauges">
+        <div class="gauge" data-g="online"><div class="gsvg-wrap"></div><div class="gc"><b id="kpi-active">0</b><small id="kpi-online">—</small></div><div class="gl">Fleet online</div></div>
+        <div class="gauge" data-g="fuel"><div class="gsvg-wrap"></div><div class="gc"><b id="g-fuel">0%</b><small>avg level</small></div><div class="gl">Fuel / battery</div></div>
+        <div class="gauge" data-g="dtc"><div class="gsvg-wrap"></div><div class="gc"><b id="kpi-alerts">0</b><small>active DTC</small></div><div class="gl">Fault alerts</div></div>
+        <div class="gauge" data-g="stock"><div class="gsvg-wrap"></div><div class="gc"><b id="g-stock">0%</b><small>parts OK</small></div><div class="gl">Spare stock</div></div>
       </div>
-    </section>
+    </div>
+
+    <div class="card p-map">
+      <h3>Fleet Distribution <span class="chip">LIVE ROUTES</span></h3>
+      <div class="mapwrap">
+        <div class="mapstats">
+          <div><small>ACTIVE ROUTES</small><b>7</b></div>
+          <div><small>IN TRANSIT</small><b id="m-transit">0</b></div>
+          <div><small>GEOFENCE ALERTS</small><b style="color:var(--green)">0</b></div>
+          <div><small>HUB</small><b style="font-size:15px">BANGKOK</b></div>
+        </div>
+        <div class="mapcv"><canvas id="hudmap"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card p-matrix">
+      <h3>Fleet Matrix</h3>
+      <div class="tw" style="margin-top:10px"><table class="hud-table" id="matrix"></table></div>
+    </div>
+
+    <div class="card p-tiles">
+      <h3>Stock &amp; Nodes</h3>
+      <div class="tiles" id="tiles"></div>
+    </div>
+
+    <div class="card p-bars">
+      <h3>Units by Depot</h3><div class="chart"><canvas id="c-depot"></canvas></div>
+    </div>
+
+    <div class="card p-multi">
+      <h3>Telemetry Channels</h3>
+      <div class="tabs2" id="mtabs"><button class="on" data-t="rpm">RPM</button><button data-t="temp">TEMP</button><button data-t="speed">SPEED</button><button data-t="fuel">FUEL</button><button data-t="batt">BATT</button><button data-t="vib">VIB</button></div>
+      <div class="chart"><canvas id="c-multi"></canvas></div>
+    </div>
+
+    <div class="card p-mkt">
+      <h3>Distance &amp; Efficiency</h3><div class="sub">k km per month · km/L</div>
+      <div class="chart"><canvas id="c-mkt"></canvas></div>
+    </div>
+
+    <div class="card p-stats">
+      <h3>Fleet Statistics</h3>
+      <div class="srows">
+        <div><span>Vehicles</span><b id="st-veh">0</b></div>
+        <div><span>Online</span><b id="st-on">0%</b></div>
+        <div><span>Avg level</span><b id="st-fuel">0%</b></div>
+      </div>
+      <div class="chart"><canvas id="c-health"></canvas></div>
+      <div class="legend row" id="lg-health"></div>
+    </div>
+
+    <div class="card p-fleet">
+      <div class="tools">
+        <div style="display:flex;gap:12px;align-items:baseline"><h3>Live Fleet Telematics &amp; Inventory Status</h3><span class="dim mono" id="rec-count"></span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <input id="q" placeholder="Search Vehicle ID or Model..." style="width:250px" aria-label="Search">
+          <select id="st" aria-label="Status filter"><option value="ALL">All Statuses</option><option value="Operational">Operational</option><option value="Warning">Warning / DTC</option><option value="Maintenance">Maintenance Required</option></select>
+        </div>
+      </div>
+      <div class="tw"><table>
+        <thead><tr><th>VEHICLE ID &amp; MODEL</th><th>STATUS</th><th>FUEL / BATTERY</th><th>SPEED</th><th>OBD-II (DTC)</th><th>SPARE PART</th><th style="text-align:right">ACTIONS</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table></div>
+    </div>
+
+  </div>
+</section>
 
     <!-- ===== TELEMATICS ===== -->
     <section class="view" data-view="telematics">
@@ -603,7 +798,7 @@ const donut3d = {id:'donut3d',
       m.data.forEach((e,j)=>{ ctx.fillStyle=shade(cols[j],-.5+(1-z/depth)*.15); ctx.beginPath(); ctx.arc(e.x,e.y+z,e.outerRadius,e.startAngle,e.endAngle); ctx.arc(e.x,e.y+z,e.innerRadius,e.endAngle,e.startAngle,true); ctx.closePath(); ctx.fill(); }); }
   },
   afterDatasetsDraw(chart){ if(!chart._d3)return; chart.ctx.restore(); const m=chart.getDatasetMeta(0); if(!m.data.length)return; const ctx=chart.ctx,t=chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-    ctx.save();ctx.textAlign='center';ctx.fillStyle='#e6edf7';ctx.font="700 24px 'Chakra Petch'";ctx.fillText(t,m.data[0].x,m.data[0].y+2);ctx.fillStyle='#8a99b2';ctx.font="11px 'Sarabun'";ctx.fillText('UNITS',m.data[0].x,m.data[0].y+18);ctx.restore(); }};
+    ctx.save();ctx.textAlign='center';ctx.fillStyle='#e6edf7';ctx.font="700 24px 'Chakra Petch'";ctx.fillText(t,m.data[0].x,m.data[0].y+6);ctx.fillStyle='#8a99b2';ctx.font="10px 'Sarabun'";ctx.fillText('UNITS',m.data[0].x,m.data[0].y+20);ctx.restore(); }};
 
 const axes = {
   y:{grid:{color:'rgba(148,163,184,.1)'},border:{display:false},beginAtZero:true},
@@ -617,7 +812,7 @@ function barChart(id,labels,data,colors,extra={}){
 function legend(id,items){ $(id).innerHTML=items.map(i=>`<div><span><i style="background:${i.c}"></i>${esc(i.l)}</span><b class="mono">${i.v}</b></div>`).join(''); }
 function donutChart(id,lg,labels,data,colors){
   make(id,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'58%',events:[],layout:{padding:{bottom:26}},plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[donut3d]});
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',events:[],layout:{padding:{bottom:30}},plugins:{legend:{display:false},tooltip:{enabled:false}}},plugins:[donut3d]});
   legend(lg,labels.map((l,i)=>({l,c:colors[i],v:data[i]})));
 }
 
@@ -638,7 +833,7 @@ $('#q').addEventListener('input',renderTable); $('#st').addEventListener('change
 
 const health = () => [fleetData.filter(v=>v.status==='Operational').length,fleetData.filter(v=>v.status==='Warning').length,fleetData.filter(v=>v.status==='Maintenance').length];
 function refreshHealth(){ donutChart('c-health','#lg-health',['Operational','DTC Warning','Maintenance Req.'],health(),[C.green,C.amber,C.rose]); }
-function refreshKpis(){ const on=fleetData.filter(v=>v.status!=='Maintenance').length; $('#kpi-active').textContent=on; $('#kpi-online').textContent=fleetData.length?Math.round(on/fleetData.length*100)+'% Fleet Online':'—'; $('#kpi-alerts').textContent=fleetData.filter(v=>!v.dtc.startsWith('P0000')).length; }
+function refreshKpis(){ const on=fleetData.filter(v=>v.status!=='Maintenance').length; $('#kpi-active').textContent=on; $('#kpi-online').textContent=fleetData.length?Math.round(on/fleetData.length*100)+'% Fleet Online':'—'; $('#kpi-alerts').textContent=fleetData.filter(v=>!v.dtc.startsWith('P0000')).length; if(typeof renderGauges==='function') renderGauges(); }
 const init = {};
 init.dashboard = () => {
   renderTable();
@@ -837,7 +1032,7 @@ function showAuth(msg,fatal,sys,mode){
   $('#a-confirm-wrap').hidden=!reg; $('#a-appr-wrap').hidden=!(reg&&!first);
   $('#a-pass').autocomplete=reg?'new-password':'current-password';
   $('#a-submit').textContent=reg?'สมัครสมาชิก':'เข้าสู่ระบบ'; $('#a-submit').disabled=!!fatal;
-  $('#a-toggle').textContent=reg?'มีบัญชีแล้ว? เข้าสู่ระบบ':'ยังไม่มีบัญชี? สมัครสมาชิก'; $('#a-toggle').hidden=!!fatal;
+  $('#a-toggle').textContent=reg?'มีบัญชีแล้ว? เข้าสู่ระบบ':'ยังไม่มีบัญชี? สมัครสมาชิก'; $('#a-toggle').hidden=!!fatal; $('#a-back').hidden=!reg;
   $('#a-reset').hidden=reg||first; $('#a-reset').textContent=`ลืมรหัสผ่าน? รีเซ็ตระบบ ${SYS[authSys].name} (ลบบัญชีและข้อมูลของระบบนี้)`;
   $('#a-err').textContent=msg||''; ['#a-pass','#a-pass2','#a-au','#a-ap'].forEach(q=>$(q).value='');
   $('#a-user').value=(!reg&&list.length===1)?list[0].user:'';
@@ -863,6 +1058,7 @@ function switchTo(sys){
 }
 $$('#a-tabs button').forEach(b=>b.addEventListener('click',()=>switchTo(b.dataset.sys)));
 $('#btn-switch').addEventListener('click',()=>switchTo(curSys==='ops'?'work':'ops'));
+$('#a-back').addEventListener('click',()=>showAuth('',false,authSys,'login'));
 $('#a-toggle').addEventListener('click',()=>showAuth('',false,authSys,authMode==='login'?'register':'login'));
 $('#f-auth').addEventListener('submit',async e=>{
   e.preventDefault(); if(authBusy) return; authBusy=true; const err=$('#a-err'); err.textContent=''; const sys=authSys;
@@ -1191,6 +1387,104 @@ $('#s-export').addEventListener('click',()=>{
   XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(jobs.map(j=>{ const r=rm[j.id]||0; return {Item:j.item,Ref:j.ref,Expected:j.qty,Received:r,Remaining:Math.max(0,j.qty-r),Due:j.due,Status:r>=j.qty?'Arrived':r>0?'Partial':'Waiting'}; })),'Jobs');
   XLSX.writeFile(wb,'stock-and-jobs.xlsx');
 });
+
+/* ============ HUD dashboard ============ */
+Chart.defaults.color='#7fa6e8'; Chart.defaults.borderColor='rgba(60,130,255,.16)';
+axes.y.grid.color='rgba(60,130,255,.16)'; axes.x.border.color='rgba(60,130,255,.4)';
+const HC={cyan:'#19c3ff',blue:'#2f7bff',amber:'#ffc928',red:'#ff4b5c',green:'#18d98b',violet:'#8f7bff'};
+
+function gaugeSVG(pct,col){
+  const N=44; let t='';
+  for(let i=0;i<N;i++){ const f=i/(N-1), a=(-225+f*270)*Math.PI/180, on=f<=pct+1e-9&&pct>0;
+    const x1=60+43*Math.cos(a),y1=60+43*Math.sin(a),x2=60+53*Math.cos(a),y2=60+53*Math.sin(a);
+    t+=`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke-width="2.6" ${on?`class="on" style="color:${col}" stroke="${col}"`:'stroke="rgba(70,130,255,.22)"'}/>`; }
+  return `<svg class="gsvg" viewBox="0 0 120 120" aria-hidden="true">${t}<circle cx="60" cy="60" r="36" fill="none" stroke="${col}" stroke-opacity=".55" stroke-width="1" stroke-dasharray="2 6" class="spin"/><circle cx="60" cy="60" r="30" fill="none" stroke="rgba(70,130,255,.35)" stroke-width="1"/></svg>`;
+}
+const FAMS=[['GT-R',/GT-R/i],['Navara',/Navara/i],['Leaf',/Leaf/i],['Ariya',/Ariya/i]];
+function renderGauges(){
+  if(!$('#g-fuel')) return;
+  const n=fleetData.length||1, on=fleetData.filter(v=>v.status!=='Maintenance').length, fuel=Math.round(fleetData.reduce((a,v)=>a+v.fuel,0)/n),
+        al=fleetData.filter(v=>!v.dtc.startsWith('P0000')).length, stk=Math.round(parts.filter(p=>partStatus(p)==='ok').length/parts.length*100);
+  const set=(g,p,c)=>{ const el=$(`[data-g=${g}] .gsvg-wrap`); if(el) el.innerHTML=gaugeSVG(Math.min(1,p),c); };
+  set('online',on/n,HC.cyan); set('fuel',fuel/100,fuel<30?HC.red:HC.green); set('dtc',al/n,al?HC.amber:HC.green); set('stock',stk/100,stk<50?HC.red:stk<80?HC.amber:HC.green);
+  $('#kpi-active').textContent=on; $('#kpi-online').textContent=Math.round(on/n*100)+'% online'; $('#g-fuel').textContent=fuel+'%'; $('#kpi-alerts').textContent=al; $('#g-stock').textContent=stk+'%';
+  $('#st-veh').textContent=fleetData.length; $('#st-on').textContent=Math.round(on/n*100)+'%'; $('#st-fuel').textContent=fuel+'%';
+  $('#m-transit').textContent=fleetData.filter(v=>v.speed>0).length;
+  // matrix
+  const cols=FAMS.map(([n,re])=>[n,fleetData.filter(v=>re.test(v.model))]); const other=fleetData.filter(v=>!FAMS.some(f=>f[1].test(v.model))); if(other.length) cols.push(['Other',other]);
+  const avg=(l,k)=>l.length?Math.round(l.reduce((a,v)=>a+v[k],0)/l.length):'—';
+  $('#matrix').innerHTML='<thead><tr><th>Index</th>'+cols.map(c=>`<th>${c[0]}</th>`).join('')+'</tr></thead><tbody>'+
+    [['Units',l=>l.length],['Avg speed',l=>avg(l,'speed')],['Avg level %',l=>avg(l,'fuel')],['DTC alerts',l=>l.filter(v=>!v.dtc.startsWith('P0000')).length]]
+    .map(([n,f])=>`<tr><td>${n}</td>${cols.map(c=>`<td>${f(c[1])}</td>`).join('')}</tr>`).join('')+'</tbody>';
+  // tiles
+  $('#tiles').innerHTML=parts.map(p=>`<div class="tile ${({ok:'',warn:'warn',bad:'bad'})[partStatus(p)]}"><small>${esc(p.sku)}</small><b>${p.qty}</b></div>`).join('')+
+    `<div class="tile"><small>NODES</small><b>124</b></div><div class="tile ${al?'warn':''}"><small>ALERTS</small><b>${al}</b></div>`;
+  // scan callouts (first vehicle)
+  const v=fleetData[0]; if(v){ $('#sc-eng').textContent=`ENGINE ${v.temp}°C`; $('#sc-dtc').textContent=`OBD ${v.dtc.split(' ')[0]}`; $('#sc-bat').textContent=`LEVEL ${v.fuel}%`; $('#sc-id').textContent=`UNIT ${v.id}`; }
+}
+function seeded(seed){ let s=seed; return ()=>{ s=(s*16807)%2147483647; return (s-1)/2147483646; }; }
+const TABS={rpm:[2200,1100,'rpm'],temp:[88,14,'°C'],speed:[85,40,'km/h'],fuel:[60,25,'%'],batt:[72,18,'%'],vib:[0.3,0.22,'g']};
+function multiData(key){
+  const [base,amp]=TABS[key], r=seeded(key.length*97+key.charCodeAt(0)), cols=[HC.red,HC.green,HC.amber,HC.blue,HC.cyan], names=['GT-R','Navara','Leaf','Ariya','Other'];
+  return names.map((n,k)=>({label:n,borderColor:cols[k],backgroundColor:cols[k],borderWidth:1.6,tension:.4,pointRadius:2.4,pointBackgroundColor:'#06142f',pointBorderColor:cols[k],pointBorderWidth:1.4,
+    data:Array.from({length:10},(_,i)=>+(base*(.78+.3*k/4)+amp*(.55*Math.sin(i*.8+k*1.3)+.45*(r()-.5))).toFixed(2))}));
+}
+function initMulti(){
+  make('c-multi',{type:'line',data:{labels:Array.from({length:10},(_,i)=>i+1),datasets:multiData('rpm')},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'right',labels:{usePointStyle:true,boxWidth:7,boxHeight:7,font:{size:10}}}},scales:{y:axes.y,x:axes.x}},plugins:[]});
+  $('#mtabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; $$('#mtabs button').forEach(x=>x.classList.toggle('on',x===b)); const c=charts['c-multi']; c.data.datasets=multiData(b.dataset.t); c.update(); });
+}
+init.dashboard=()=>{
+  renderTable(); renderGauges();
+  // mini live telemetry (อัปเดตทุก 3 วินาทีโดยตัวจับเวลาเดิม)
+  make('c-live',{type:'line',data:{labels:['','','','','','',''],datasets:[
+    {label:'Speed',data:[85,92,110,118,105,125,118],borderColor:HC.cyan,borderWidth:2,tension:.4,pointRadius:2.5,pointBackgroundColor:'#fff',pointBorderColor:HC.cyan,fill:false},
+    {label:'RPM/100',data:[25,28,38,42,32,48,41],borderColor:HC.amber,borderWidth:2,tension:.4,pointRadius:2.5,pointBackgroundColor:'#fff',pointBorderColor:HC.amber,fill:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},events:[],scales:{y:{display:false,min:0},x:{display:false}}},plugins:[lineGlow]});
+  const dep=[['Bangkok',48,HC.red],['Rayong',22,HC.amber],['Chiang Mai',14,HC.green],['Khon Kaen',11,HC.cyan],['Hat Yai',10,HC.blue],['Phitsanulok',9,HC.blue],['Surat Thani',8,HC.violet],['Phuket',7,HC.violet]];
+  make('c-depot',{type:'bar',data:{labels:dep.map(d=>d[0]),datasets:[{data:dep.map(d=>d[1]),backgroundColor:dep.map(d=>d[2]),borderWidth:0,barThickness:11}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{...axes.y,beginAtZero:true},y:{grid:{display:false},border:{color:'rgba(60,130,255,.4)'},ticks:{color:'#dbe9ff'}}}}});
+  const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  make('c-mkt',{data:{labels:M,datasets:[
+    {type:'bar',label:'k km',data:[32,38,41,45,52,58,61,64,59,66,70,74],borderWidth:0,barPercentage:.6,backgroundColor:c=>{const a=c.chart.chartArea; if(!a) return HC.blue; const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom); g.addColorStop(0,'#a9d2ff'); g.addColorStop(1,'#2f7bff'); return g;},yAxisID:'y'},
+    {type:'line',label:'km/L',data:[10.1,10.4,10.8,11,11.2,11.1,11.3,11.5,11.4,11.6,11.8,12],borderColor:'#e6ff3a',borderWidth:2,tension:.4,pointRadius:3,pointBackgroundColor:'#e6ff3a',pointBorderColor:'#061534',yAxisID:'y1'}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',align:'start',labels:{usePointStyle:true,boxWidth:7,boxHeight:7,font:{size:10}}}},scales:{x:axes.x,y:axes.y,y1:{position:'right',grid:{display:false},min:9,max:13,border:{display:false}}}},plugins:[]});
+  refreshHealth(); initMulti(); startHudMap();
+};
+
+/* แผนที่ประเทศไทยแบบจุดเมทริกซ์ + เส้นทางวิ่ง (วาดเอง ไม่ใช้แผนที่ภายนอก) */
+const TH=[[97.4,18.6],[97.7,19.5],[98.3,19.8],[98.9,19.8],[99.2,20.1],[99.9,20.45],[100.4,20.3],[100.2,19.8],[100.6,19.6],[101.0,19.4],[101.2,18.9],[101.1,18.2],[100.9,17.7],[101.2,17.5],[101.6,17.8],[102.1,18.15],[102.9,18.0],[103.5,18.4],[104.2,17.9],[104.8,17.4],[104.6,16.9],[104.8,16.4],[105.4,15.8],[105.6,15.0],[105.55,14.4],[104.8,14.4],[103.9,14.35],[103.1,14.3],[102.6,14.2],[102.4,13.6],[102.5,12.9],[102.3,12.3],[102.9,11.7],[102.4,12.1],[101.8,12.55],[101.2,12.65],[100.9,13.3],[100.6,13.5],[100.1,13.45],[100.0,12.9],[99.9,12.3],[99.7,11.5],[99.3,10.6],[99.2,9.6],[99.5,9.1],[100.0,8.5],[100.3,7.9],[100.5,7.2],[101.0,6.9],[101.5,6.8],[101.9,6.3],[101.3,5.9],[100.7,6.3],[100.1,6.5],[99.7,6.6],[99.6,7.2],[99.2,7.7],[98.7,8.0],[98.3,8.3],[98.4,9.3],[98.6,10.2],[98.7,10.9],[99.0,11.8],[99.2,12.6],[98.9,13.4],[98.4,13.9],[98.6,14.8],[98.6,15.5],[98.2,16.1],[97.9,16.9],[97.7,17.6]];
+const CITY=[['Bangkok',100.5,13.75,1],['Chiang Mai',98.99,18.79],['Phitsanulok',100.26,16.82],['Khon Kaen',102.83,16.43],['Rayong',101.28,12.68],['Surat Thani',99.32,9.14],['Phuket',98.39,7.88],['Hat Yai',100.47,7.0]];
+let mapOn=false, mapBG=null, mapPts=[], mapSize={w:0,h:0};
+function inPoly(x,y,p){ let c=false; for(let i=0,j=p.length-1;i<p.length;j=i++){ if(((p[i][1]>y)!==(p[j][1]>y))&&(x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0])) c=!c; } return c; }
+function layoutMap(){
+  const cv=$('#hudmap'); if(!cv) return; const r=cv.getBoundingClientRect(), d=Math.min(devicePixelRatio||1,2); if(r.width<10||r.height<10) return;
+  cv.width=r.width*d; cv.height=r.height*d; mapSize={w:r.width,h:r.height,d};
+  const pad=16, dLon=8.4, dLat=14.9, sc=Math.min((r.width-2*pad)/(dLon*.975),(r.height-2*pad)/dLat), ox=(r.width-dLon*.975*sc)/2, oy=(r.height-dLat*sc)/2;
+  const P=(lo,la)=>[ox+(lo-97.3)*.975*sc, oy+(20.6-la)*sc];
+  mapPts=TH.map(p=>P(p[0],p[1])); const bg=document.createElement('canvas'); bg.width=r.width*d; bg.height=r.height*d; const g=bg.getContext('2d'); g.scale(d,d);
+  g.fillStyle='rgba(25,195,255,.38)'; for(let x=ox;x<r.width-ox;x+=5) for(let y=oy;y<r.height-oy;y+=5) if(inPoly(x,y,mapPts)){ g.fillRect(x,y,1.5,1.5); }
+  g.strokeStyle='#19c3ff'; g.lineWidth=1.3; g.shadowColor='#19c3ff'; g.shadowBlur=8; g.beginPath(); mapPts.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])); g.closePath(); g.stroke();
+  mapBG=bg; mapSize.nodes=CITY.map(c=>({n:c[0],hub:!!c[3],p:P(c[1],c[2])}));
+}
+function startHudMap(){
+  if(mapOn) return; mapOn=true; const cv=$('#hudmap'); if(window.ResizeObserver) new ResizeObserver(layoutMap).observe(cv.parentElement); layoutMap();
+  const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  (function frame(t){ requestAnimationFrame(frame);
+    const v=document.querySelector('.view.active'); if(!v||v.dataset.view!=='dashboard'||document.hidden||!mapBG) return;
+    const ctx=cv.getContext('2d'), {w,h,d,nodes}=mapSize; ctx.setTransform(d,0,0,d,0,0); ctx.clearRect(0,0,w,h); ctx.drawImage(mapBG,0,0,w,h);
+    const hub=nodes.find(n=>n.hub), tt=reduce?0:t;
+    nodes.forEach((n,i)=>{ if(n.hub) return; const [x1,y1]=hub.p,[x2,y2]=n.p, cx=(x1+x2)/2+(y1-y2)*.22, cy=(y1+y2)/2-Math.abs(x2-x1)*.2-8;
+      ctx.strokeStyle='rgba(255,201,40,.45)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.quadraticCurveTo(cx,cy,x2,y2); ctx.stroke();
+      const u=((tt*.00035)+i*.137)%1, a=(1-u)*(1-u), b=2*(1-u)*u, c=u*u, px=a*x1+b*cx+c*x2, py=a*y1+b*cy+c*y2;
+      ctx.fillStyle='#fff'; ctx.shadowColor='#ffc928'; ctx.shadowBlur=10; ctx.beginPath(); ctx.arc(px,py,2.2,0,6.283); ctx.fill(); ctx.shadowBlur=0; });
+    nodes.forEach(n=>{ const pr=reduce?.5:((tt*.0008)%1), R=3+(n.hub?3:0);
+      ctx.strokeStyle=`rgba(25,195,255,${.7*(1-pr)})`; ctx.lineWidth=1.2; ctx.beginPath(); ctx.arc(n.p[0],n.p[1],R+pr*12,0,6.283); ctx.stroke();
+      ctx.fillStyle=n.hub?'#ff4b5c':'#19c3ff'; ctx.shadowColor=ctx.fillStyle; ctx.shadowBlur=10; ctx.beginPath(); ctx.arc(n.p[0],n.p[1],R,0,6.283); ctx.fill(); ctx.shadowBlur=0;
+      ctx.font="600 9px 'Chakra Petch',sans-serif"; ctx.fillStyle='#dbe9ff'; const left=n.p[0]<w*.42; ctx.textAlign=left?'right':'left'; ctx.fillText(n.n,n.p[0]+(left?-9:9),n.p[1]+3); });
+  })(0);
+}
+setInterval(()=>{ const c=$('#clock'); if(c&&unlocked){ const d=new Date(); c.textContent=`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}  ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; } },1000);
 
 /* ============ เริ่มทำงาน ============ */
 icons();
